@@ -6,6 +6,7 @@ import {
   PieChart,
   HeatmapChart,
   FunnelChart,
+  RadarChart,
 } from 'echarts/charts'
 import {
   TitleComponent,
@@ -25,6 +26,7 @@ use([
   PieChart,
   HeatmapChart,
   FunnelChart,
+  RadarChart,
   TitleComponent,
   TooltipComponent,
   GridComponent,
