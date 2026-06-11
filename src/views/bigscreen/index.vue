@@ -5,14 +5,18 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-// ===== 缩放适配:基于 1920×1080 设计稿 =====
+// ===== 缩放适配:基于 wrapper 实际尺寸(响应式) =====
 const baseWidth = 1920
 const baseHeight = 1080
 const scale = ref(1)
+const wrapperEl = ref<HTMLElement | null>(null)
+let resizeObserver: ResizeObserver | null = null
 
 function calcScale() {
-  const w = window.innerWidth
-  const h = window.innerHeight
+  if (!wrapperEl.value) return
+  const w = wrapperEl.value.clientWidth
+  const h = wrapperEl.value.clientHeight
+  if (w === 0 || h === 0) return
   scale.value = Math.min(w / baseWidth, h / baseHeight)
 }
 
@@ -327,8 +331,15 @@ const tagLabel: Record<RollItem['tag'], string> = {
 
 // 生命周期
 onMounted(() => {
-  calcScale()
-  window.addEventListener('resize', calcScale)
+  // 响应式:监听 wrapper 尺寸变化(代替 window.resize,跟随父容器)
+  if (wrapperEl.value && 'ResizeObserver' in window) {
+    resizeObserver = new ResizeObserver(calcScale)
+    resizeObserver.observe(wrapperEl.value)
+  } else {
+    window.addEventListener('resize', calcScale)
+  }
+  // 初次计算(下一帧,确保 wrapper 已有尺寸)
+  requestAnimationFrame(calcScale)
   animateIn()
   timer1 = window.setInterval(tick, 1000)
   timer2 = window.setInterval(() => metrics.value.forEach(pulseMetric), 2500)
@@ -336,7 +347,12 @@ onMounted(() => {
   document.addEventListener('fullscreenchange', onFullscreenChange)
 })
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', calcScale)
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  } else {
+    window.removeEventListener('resize', calcScale)
+  }
   clearInterval(timer1)
   clearInterval(timer2)
   clearInterval(timer3)
@@ -354,7 +370,6 @@ function goBack() {
 
 // ===== 全屏模式 =====
 const isFullscreen = ref(false)
-const wrapperEl = ref<HTMLElement | null>(null)
 
 async function toggleFullscreen() {
   if (!wrapperEl.value) return
@@ -388,6 +403,26 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="wrapperEl" class="bigscreen-wrapper">
+    <!-- 浮动工具栏(不受 scale 影响,任何尺寸下都清晰可见) -->
+    <div class="bs-toolbar">
+      <el-button
+        type="primary"
+        class="bs-toolbar-btn"
+        :title="isFullscreen ? '退出全屏' : '进入全屏'"
+        @click="toggleFullscreen"
+      >
+        <el-icon size="14">
+          <FullScreen v-if="!isFullscreen" />
+          <Aim v-else />
+        </el-icon>
+        <span>{{ isFullscreen ? '退出' : '全屏' }}</span>
+      </el-button>
+      <el-button class="bs-toolbar-btn" title="返回" @click="goBack">
+        <el-icon size="14"><Back /></el-icon>
+        <span>返回</span>
+      </el-button>
+    </div>
+
     <div class="bigscreen" :style="{ transform: `scale(${scale})` }">
       <!-- 顶部 -->
       <header class="bs-header">
@@ -412,22 +447,6 @@ onBeforeUnmount(() => {
             <div class="bs-time-hms num">{{ timeStr }}</div>
             <div class="bs-time-date">{{ dateStr }}</div>
           </div>
-          <el-button
-            text
-            class="bs-action-btn"
-            :class="{ active: isFullscreen }"
-            :title="isFullscreen ? '退出全屏' : '进入全屏'"
-            @click="toggleFullscreen"
-          >
-            <el-icon size="16">
-              <FullScreen v-if="!isFullscreen" />
-              <Aim v-else />
-            </el-icon>
-            <span>{{ isFullscreen ? '退出' : '全屏' }}</span>
-          </el-button>
-          <el-button text class="bs-back" @click="goBack">
-            <el-icon><Back /></el-icon>返回
-          </el-button>
         </div>
       </header>
 
@@ -727,26 +746,39 @@ export default { components: { Panel } }
   &:hover { color: #00f0ff !important; border-color: #00f0ff !important; }
 }
 
-.bs-action-btn {
-  color: rgba(255, 255, 255, 0.75) !important;
-  border: 1px solid rgba(0, 240, 255, 0.3) !important;
-  border-radius: 6px !important;
-  padding: 4px 12px !important;
+// ===== 浮动工具栏(不受 scale 影响) =====
+.bs-toolbar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 100;
+  display: flex;
+  gap: 8px;
+}
+
+.bs-toolbar-btn {
+  font-size: 13px !important;
+  padding: 6px 14px !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 4px;
-  font-size: 13px !important;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.85) !important;
+  border: 1px solid rgba(0, 240, 255, 0.4) !important;
+  color: #00f0ff !important;
+  backdrop-filter: blur(8px);
+  border-radius: 6px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transition: all 0.25s ease !important;
   &:hover {
-    color: #00f0ff !important;
+    background: rgba(0, 240, 255, 0.15) !important;
     border-color: #00f0ff !important;
-    box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+    box-shadow: 0 4px 16px rgba(0, 240, 255, 0.4);
+    transform: translateY(-1px);
   }
-  &.active {
+  &.is-primary {
+    background: linear-gradient(135deg, rgba(0, 240, 255, 0.3), rgba(196, 77, 255, 0.3)) !important;
     color: #fff !important;
-    background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(196, 77, 255, 0.2)) !important;
     border-color: #00f0ff !important;
-    box-shadow: 0 0 16px rgba(0, 240, 255, 0.5);
   }
 }
 
