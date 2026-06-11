@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import VChart from 'vue-echarts'
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
 
 // ===== 缩放适配:基于 wrapper 实际尺寸(响应式) =====
 const baseWidth = 1920
@@ -363,11 +360,6 @@ onBeforeUnmount(() => {
   }
 })
 
-// 返回
-function goBack() {
-  router.push('/dashboard')
-}
-
 // ===== 全屏模式 =====
 const isFullscreen = ref(false)
 
@@ -403,7 +395,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="wrapperEl" class="bigscreen-wrapper">
-    <!-- 浮动工具栏(不受 scale 影响,任何尺寸下都清晰可见) -->
+    <!-- 浮动工具栏(不受 zoom 影响,任何尺寸下都清晰可见) -->
     <div class="bs-toolbar">
       <el-button
         type="primary"
@@ -417,13 +409,10 @@ onBeforeUnmount(() => {
         </el-icon>
         <span>{{ isFullscreen ? '退出' : '全屏' }}</span>
       </el-button>
-      <el-button class="bs-toolbar-btn" title="返回" @click="goBack">
-        <el-icon size="14"><Back /></el-icon>
-        <span>返回</span>
-      </el-button>
     </div>
 
-    <div class="bigscreen" :style="{ transform: `scale(${scale})` }">
+    <!-- 用 CSS zoom 同步缩放 box(避免 transform: scale 溢出 wrapper 被裁右侧) -->
+    <div class="bigscreen" :style="{ zoom: scale }">
       <!-- 顶部 -->
       <header class="bs-header">
         <div class="bs-header-left">
