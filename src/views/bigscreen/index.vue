@@ -555,15 +555,17 @@ export default { components: { Panel } }
 
 <style lang="scss" scoped>
 .bigscreen-wrapper {
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
+  min-height: 800px;
   background: #050b18;
   overflow: hidden;
-  position: fixed;
-  inset: 0;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: $radius-md;
+  box-shadow: $shadow-md;
 }
 
 .bigscreen {

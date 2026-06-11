@@ -52,20 +52,18 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/logs/index.vue'),
         meta: { title: '操作日志', icon: 'Document', roles: ['admin', 'operator'] },
       },
+      {
+        path: 'bigscreen',
+        name: 'Bigscreen',
+        component: () => import('@/views/bigscreen/index.vue'),
+        meta: {
+          title: '数据大屏',
+          icon: 'Monitor',
+          roles: ['admin', 'operator', 'viewer'],
+          perm: 'bigscreen:view',
+        },
+      },
     ],
-  },
-  // 大屏独立路径(不走 AdminLayout,无侧边栏 / 顶栏 DOM)
-  {
-    path: '/bigscreen',
-    name: 'Bigscreen',
-    component: () => import('@/views/bigscreen/index.vue'),
-    meta: {
-      title: '数据大屏',
-      icon: 'Monitor',
-      roles: ['admin', 'operator', 'viewer'],
-      perm: 'bigscreen:view',
-      layout: 'standalone',
-    },
   },
   {
     path: '/404',
