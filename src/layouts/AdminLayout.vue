@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, onBeforeUnmount, reactive, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
@@ -84,13 +84,36 @@ function handleLogout() {
     .catch(() => {})
 }
 
-function toggleFullscreen() {
-  if (document.fullscreenElement) {
-    document.exitFullscreen()
-  } else {
-    document.documentElement.requestFullscreen()
+// ===== 主内容区全屏(不包含侧边栏 / 顶栏) =====
+const mainEl = ref<HTMLElement | null>(null)
+const isMainFullscreen = ref(false)
+
+async function toggleFullscreen() {
+  if (!mainEl.value) return
+  try {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen()
+    } else {
+      await mainEl.value.requestFullscreen()
+    }
+  } catch (e) {
+    ElMessage.warning('当前环境不支持全屏 API(可用 Esc 退出)')
   }
 }
+
+function onFullscreenChange() {
+  isMainFullscreen.value = !!document.fullscreenElement
+}
+
+onMounted(() => {
+  document.addEventListener('fullscreenchange', onFullscreenChange)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('fullscreenchange', onFullscreenChange)
+  if (document.fullscreenElement) {
+    document.exitFullscreen().catch(() => {})
+  }
+})
 </script>
 
 <template>
@@ -211,9 +234,17 @@ function toggleFullscreen() {
             </div>
           </el-popover>
 
-          <el-tooltip content="全屏">
-            <el-button text class="header-icon-btn" @click="toggleFullscreen">
-              <el-icon size="18"><FullScreen /></el-icon>
+          <el-tooltip :content="isMainFullscreen ? '退出全屏' : '全屏(主内容)'">
+            <el-button
+              text
+              class="header-icon-btn"
+              :class="{ 'is-active': isMainFullscreen }"
+              @click="toggleFullscreen"
+            >
+              <el-icon size="18">
+                <FullScreen v-if="!isMainFullscreen" />
+                <Aim v-else />
+              </el-icon>
             </el-button>
           </el-tooltip>
           <el-dropdown trigger="click">
@@ -240,7 +271,7 @@ function toggleFullscreen() {
       </el-header>
 
       <!-- 内容 -->
-      <el-main class="admin-content">
+      <el-main ref="mainEl" class="admin-content">
         <router-view v-slot="{ Component, route: r }">
           <transition name="slide" mode="out-in">
             <component :is="Component" :key="r.fullPath" />
@@ -573,6 +604,11 @@ html.dark .admin-header {
   &:hover {
     background: $bg-hover;
     color: $primary;
+  }
+  &.is-active {
+    background: var(--primary) !important;
+    color: #fff !important;
+    box-shadow: 0 0 12px var(--primary) !important;
   }
 }
 
