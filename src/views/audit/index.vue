@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { mockNotes } from '@/api/mock'
 import { compact, formatDate, relativeTime } from '@/utils/format'
@@ -11,6 +11,10 @@ const activeStatus = ref<'all' | 'pending' | 'approved' | 'rejected'>('pending')
 const searchKeyword = ref('')
 const categoryFilter = ref<string>('')
 const selected = ref<number[]>([])
+
+// 分页
+const currentPage = ref(1)
+const pageSize = ref(10)
 
 const detailVisible = ref(false)
 const detailNote = ref<NoteItem | null>(null)
@@ -42,6 +46,21 @@ const filtered = computed(() => {
     }
     return true
   })
+})
+
+// 分页后表格数据
+const tableData = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return filtered.value.slice(start, start + pageSize.value)
+})
+
+// 切换筛选时回到第一页
+function resetPage() {
+  currentPage.value = 1
+}
+
+watch([activeStatus, searchKeyword, categoryFilter], () => {
+  resetPage()
 })
 
 // 各状态数量
@@ -177,7 +196,7 @@ function showDetail(note: NoteItem) {
 
     <!-- 列表 -->
     <el-table
-      :data="filtered"
+      :data="tableData"
       @selection-change="onSelect"
       class="audit-table"
       :header-cell-style="{ background: '#fafbfc', color: '#6b7280', fontWeight: 500 }"
@@ -272,6 +291,18 @@ function showDetail(note: NoteItem) {
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- 分页 -->
+    <div class="pagination">
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :total="filtered.length"
+        :page-sizes="[10, 20, 50]"
+        layout="total, sizes, prev, pager, next, jumper"
+        background
+      />
+    </div>
 
     <!-- 详情抽屉 -->
     <el-drawer
@@ -456,6 +487,17 @@ html.dark .tab-count { background: #1e293b; }
 .category-select { width: 160px; }
 
 .toolbar-spacer { flex: 1; }
+
+// ===== 分页 =====
+.pagination {
+  background: #fff;
+  border-radius: $radius-lg;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: flex-end;
+  border: 1px solid $border-light;
+}
+html.dark .pagination { background: #0f172a; border-color: #1e293b; }
 
 // ===== 表格 =====
 :deep(.audit-table) {

@@ -192,13 +192,28 @@ const funnelOption = computed(() => ({
   series: [
     {
       type: 'funnel',
-      left: '10%',
-      right: '10%',
-      top: 20,
-      bottom: 20,
+      left: '5%',
+      right: '20%', // 给右侧 label 留空间
+      top: 16,
+      bottom: 16,
+      width: '70%',
+      minSize: '20%',
+      maxSize: '100%',
       sort: 'descending',
       gap: 4,
-      label: { color: '#fff', fontSize: 12, fontWeight: 600 },
+      label: {
+        position: 'right',
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: 500,
+        lineHeight: 18,
+        formatter: (p: any) => `${p.name}\n${p.value}%`,
+      },
+      labelLine: {
+        show: true,
+        length: 10,
+        lineStyle: { color: 'rgba(0,240,255,0.4)', width: 1 },
+      },
       itemStyle: { borderColor: '#0a1a2e', borderWidth: 2 },
       data: [
         { value: 100, name: '浏览 12,849', itemStyle: { color: '#00f0ff' } },
