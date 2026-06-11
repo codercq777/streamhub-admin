@@ -15,21 +15,13 @@ function calcScale() {
   const h = window.innerHeight
   scale.value = Math.min(w / baseWidth, h / baseHeight)
 }
-onMounted(() => {
-  calcScale()
-  window.addEventListener('resize', calcScale)
-  // 启动时间 + 翻牌器
-  tick()
-  timer = window.setInterval(tick, 1000)
-})
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', calcScale)
-  if (timer) clearInterval(timer)
-})
 
 // ===== 实时时间 =====
 const now = ref(new Date())
-let timer: number
+let timer1: number
+let timer2: number
+let timer3: number
+
 function tick() {
   now.value = new Date()
 }
@@ -44,33 +36,63 @@ const dateStr = computed(() => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${weeks[d.getDay()]}`
 })
 
-// ===== 数字翻牌器(带动画) =====
-const metrics = ref([
-  { label: '活跃用户', value: 0, target: 12849, suffix: '', color: '#00f0ff' },
-  { label: '今日订单', value: 0, target: 3287, suffix: '', color: '#ff6b6b' },
-  { label: '总流水 (元)', value: 0, target: 158420, suffix: '', color: '#16c099' },
-  { label: '访问 PV', value: 0, target: 89420, suffix: '', color: '#c44dff' },
+// ===== 数字翻牌器(进入动画 + 实时微涨) =====
+interface Metric {
+  label: string
+  value: number
+  base: number
+  unit: string
+  color: string
+  spark: number[] // 最近 12 个点
+  trend: number
+}
+
+const metrics = ref<Metric[]>([
+  { label: '活跃用户', value: 0, base: 12849, unit: '', color: '#00f0ff', spark: [], trend: 0 },
+  { label: '今日订单', value: 0, base: 3287, unit: '', color: '#ff6b6b', spark: [], trend: 0 },
+  { label: '总流水', value: 0, base: 158420, unit: '¥', color: '#16c099', spark: [], trend: 0 },
+  { label: '访问 PV', value: 0, base: 89420, unit: '', color: '#c44dff', spark: [], trend: 0 },
 ])
 
-// 进入动画
-onMounted(() => {
-  setTimeout(() => {
-    metrics.value.forEach((m, i) => {
-      const start = performance.now()
-      const dur = 1500 + i * 200
-      const startVal = 0
-      const endVal = m.target
-      function step(t: number) {
-        const p = Math.min(1, (t - start) / dur)
-        const eased = 1 - Math.pow(1 - p, 3) // easeOutCubic
-        m.value = Math.floor(startVal + (endVal - startVal) * eased)
-        if (p < 1) requestAnimationFrame(step)
-        else m.value = endVal
-      }
-      requestAnimationFrame(step)
-    })
-  }, 300)
-})
+// 进入动画:0 → base,逐个 delay
+function animateIn() {
+  metrics.value.forEach((m, i) => {
+    const start = performance.now()
+    const dur = 1600 + i * 200
+    function step(t: number) {
+      const p = Math.min(1, (t - start) / dur)
+      const eased = 1 - Math.pow(1 - p, 3) // easeOutCubic
+      m.value = Math.floor(m.base * eased)
+      if (p < 1) requestAnimationFrame(step)
+      else m.value = m.base
+    }
+    setTimeout(() => requestAnimationFrame(step), 300 + i * 150)
+  })
+}
+
+// 实时微涨:每 2.5s 在 base ±3% 范围内波动,推入 spark
+function pulseMetric(m: Metric) {
+  const delta = (Math.random() - 0.5) * 0.06 // ±3%
+  const next = Math.max(1, Math.floor(m.base * (1 + delta)))
+  // 数字 tween 200ms
+  const from = m.value
+  const start = performance.now()
+  function step(t: number) {
+    const p = Math.min(1, (t - start) / 200)
+    m.value = Math.floor(from + (next - from) * p)
+    if (p < 1) requestAnimationFrame(step)
+    else m.value = next
+  }
+  requestAnimationFrame(step)
+  // spark 推一个
+  m.spark.push(next)
+  if (m.spark.length > 14) m.spark.shift()
+  // 趋势 = (最新 - 7 个点前) / 7 个点前
+  if (m.spark.length >= 8) {
+    const old = m.spark[m.spark.length - 8]
+    m.trend = ((next - old) / old) * 100
+  }
+}
 
 const formatted = (v: number) => v.toLocaleString('en-US')
 
@@ -78,11 +100,11 @@ const formatted = (v: number) => v.toLocaleString('en-US')
 const lineOption = computed(() => ({
   tooltip: {
     trigger: 'axis',
-    backgroundColor: 'rgba(0,20,40,0.85)',
+    backgroundColor: 'rgba(0,20,40,0.9)',
     borderColor: '#00f0ff',
     textStyle: { color: '#fff' },
   },
-  grid: { left: 40, right: 20, top: 30, bottom: 30 },
+  grid: { left: 40, right: 16, top: 36, bottom: 28 },
   xAxis: {
     type: 'category',
     boundaryGap: false,
@@ -98,13 +120,14 @@ const lineOption = computed(() => ({
   },
   series: [
     {
+      name: '访问量',
       type: 'line',
       smooth: true,
       symbol: 'circle',
       symbolSize: 5,
       data: Array.from({ length: 24 }, (_, i) => 800 + Math.floor(Math.random() * 1200) + i * 30),
       itemStyle: { color: '#00f0ff' },
-      lineStyle: { width: 2, color: '#00f0ff' },
+      lineStyle: { width: 2.5, color: '#00f0ff' },
       areaStyle: {
         color: {
           type: 'linear',
@@ -121,7 +144,7 @@ const lineOption = computed(() => ({
 
 // ===== 饼图:用户来源 =====
 const pieOption = computed(() => ({
-  tooltip: { trigger: 'item', backgroundColor: 'rgba(0,20,40,0.85)', borderColor: '#00f0ff', textStyle: { color: '#fff' } },
+  tooltip: { trigger: 'item', backgroundColor: 'rgba(0,20,40,0.9)', borderColor: '#00f0ff', textStyle: { color: '#fff' } },
   legend: {
     bottom: 0,
     textStyle: { color: 'rgba(255,255,255,0.7)', fontSize: 11 },
@@ -134,7 +157,7 @@ const pieOption = computed(() => ({
       radius: ['45%', '70%'],
       center: ['50%', '45%'],
       itemStyle: { borderColor: '#0a1a2e', borderWidth: 2 },
-      label: { color: 'rgba(255,255,255,0.8)', fontSize: 11 },
+      label: { color: 'rgba(255,255,255,0.85)', fontSize: 11, formatter: '{b}\n{d}%' },
       data: [
         { value: 4321, name: '微信小程序', itemStyle: { color: '#00f0ff' } },
         { value: 3120, name: 'H5 分享', itemStyle: { color: '#ff6b6b' } },
@@ -148,7 +171,7 @@ const pieOption = computed(() => ({
 
 // ===== 雷达图:用户画像 =====
 const radarOption = computed(() => ({
-  tooltip: { backgroundColor: 'rgba(0,20,40,0.85)', borderColor: '#00f0ff', textStyle: { color: '#fff' } },
+  tooltip: { backgroundColor: 'rgba(0,20,40,0.9)', borderColor: '#00f0ff', textStyle: { color: '#fff' } },
   radar: {
     indicator: [
       { name: '活跃度', max: 100 },
@@ -158,7 +181,7 @@ const radarOption = computed(() => ({
       { name: '内容产出', max: 100 },
       { name: '分享', max: 100 },
     ],
-    axisName: { color: 'rgba(255,255,255,0.7)', fontSize: 11 },
+    axisName: { color: 'rgba(255,255,255,0.75)', fontSize: 11 },
     splitLine: { lineStyle: { color: 'rgba(0,240,255,0.2)' } },
     splitArea: { areaStyle: { color: ['rgba(0,240,255,0.02)', 'rgba(0,240,255,0.05)'] } },
     axisLine: { lineStyle: { color: 'rgba(0,240,255,0.2)' } },
@@ -186,18 +209,18 @@ const radarOption = computed(() => ({
   ],
 }))
 
-// ===== 漏斗图:转化漏斗 =====
+// ===== 漏斗图:转化漏斗(右侧 label,完整显示) =====
 const funnelOption = computed(() => ({
-  tooltip: { trigger: 'item', backgroundColor: 'rgba(0,20,40,0.85)', borderColor: '#00f0ff', textStyle: { color: '#fff' } },
+  tooltip: { trigger: 'item', backgroundColor: 'rgba(0,20,40,0.9)', borderColor: '#00f0ff', textStyle: { color: '#fff' } },
   series: [
     {
       type: 'funnel',
       left: '5%',
-      right: '20%', // 给右侧 label 留空间
-      top: 16,
-      bottom: 16,
+      right: '25%',
+      top: 10,
+      bottom: 10,
       width: '70%',
-      minSize: '20%',
+      minSize: '15%',
       maxSize: '100%',
       sort: 'descending',
       gap: 4,
@@ -206,7 +229,7 @@ const funnelOption = computed(() => ({
         color: '#fff',
         fontSize: 12,
         fontWeight: 500,
-        lineHeight: 18,
+        lineHeight: 16,
         formatter: (p: any) => `${p.name}\n${p.value}%`,
       },
       labelLine: {
@@ -226,17 +249,14 @@ const funnelOption = computed(() => ({
   ],
 }))
 
-// ===== 省份排行(替代中国地图,简化) =====
+// ===== 省份排行 TOP 10 =====
 const provinceOption = computed(() => ({
-  tooltip: { trigger: 'axis', backgroundColor: 'rgba(0,20,40,0.85)', borderColor: '#00f0ff', textStyle: { color: '#fff' } },
-  grid: { left: 70, right: 30, top: 10, bottom: 20 },
-  xAxis: {
-    type: 'value',
-    show: false,
-  },
+  tooltip: { trigger: 'axis', backgroundColor: 'rgba(0,20,40,0.9)', borderColor: '#00f0ff', textStyle: { color: '#fff' } },
+  grid: { left: 70, right: 40, top: 10, bottom: 20 },
+  xAxis: { type: 'value', show: false },
   yAxis: {
     type: 'category',
-    data: ['四川', '湖北', '福建', '浙江', '江苏', '广东', '上海', '北京', '浙江', '广东'],
+    data: ['四川', '湖北', '福建', '浙江', '江苏', '广东', '上海', '北京', '广东', '北京'],
     axisLine: { show: false },
     axisTick: { show: false },
     axisLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 11 },
@@ -245,9 +265,9 @@ const provinceOption = computed(() => ({
     {
       type: 'bar',
       data: [1820, 1960, 2150, 2380, 2680, 2890, 3120, 3450, 3680, 3920],
-      barWidth: 10,
+      barWidth: 9,
       itemStyle: {
-        borderRadius: [0, 5, 5, 0],
+        borderRadius: [0, 4, 4, 0],
         color: {
           type: 'linear',
           x: 0, y: 0, x2: 1, y2: 0,
@@ -269,34 +289,57 @@ const provinceOption = computed(() => ({
 }))
 
 // ===== 实时滚动数据 =====
-const rollingData = ref([
-  { time: '14:32:18', user: 'user_1024', action: '发布笔记《夏日咖啡》', amount: '' },
-  { time: '14:32:05', user: 'user_1089', action: '完成支付', amount: '¥ 128.00' },
-  { time: '14:31:42', user: 'user_1042', action: '关注创作者 @夏天的风', amount: '' },
-  { time: '14:31:20', user: 'user_1078', action: '购买会员', amount: '¥ 68.00' },
-  { time: '14:30:55', user: 'user_1019', action: '发布评论', amount: '' },
-  { time: '14:30:32', user: 'user_1102', action: '完成支付', amount: '¥ 256.00' },
-  { time: '14:30:18', user: 'user_1063', action: '发布笔记《胶片摄影入门》', amount: '' },
-  { time: '14:29:55', user: 'user_1099', action: '打赏创作者', amount: '¥ 20.00' },
-  { time: '14:29:32', user: 'user_1056', action: '注册账号', amount: '' },
-  { time: '14:29:10', user: 'user_1037', action: '完成支付', amount: '¥ 99.00' },
-])
+interface RollItem { time: string; user: string; action: string; amount: string; tag: 'pay' | 'view' | 'follow' }
+
+const rollingData = ref<RollItem[]>(
+  Array.from({ length: 10 }, (_, i) => ({
+    time: `14:3${i}:00`,
+    user: `user_${1000 + i * 7}`,
+    action: ['发布笔记', '完成支付', '关注创作者', '购买会员', '发布评论'][i % 5],
+    amount: i % 2 === 0 ? `¥ ${(20 + i * 18).toFixed(0)}.00` : '',
+    tag: i % 3 === 0 ? 'pay' : i % 3 === 1 ? 'view' : 'follow',
+  }))
+)
 
 // 模拟实时插入
-let rollingTimer: number
+function pushNew() {
+  const newItem: RollItem = {
+    time: timeStr.value,
+    user: `user_${1000 + Math.floor(Math.random() * 200)}`,
+    action: ['发布笔记', '完成支付', '关注创作者', '购买会员', '发布评论'][Math.floor(Math.random() * 5)] + (Math.random() > 0.5 ? ` #${Math.floor(Math.random() * 100)}` : ''),
+    amount: Math.random() > 0.5 ? `¥ ${(20 + Math.random() * 280).toFixed(0)}.00` : '',
+    tag: Math.random() > 0.5 ? 'pay' : Math.random() > 0.5 ? 'view' : 'follow',
+  }
+  rollingData.value.unshift(newItem)
+  if (rollingData.value.length > 14) rollingData.value.pop()
+}
+
+const tagColor: Record<RollItem['tag'], string> = {
+  pay: '#16c099',
+  view: '#00f0ff',
+  follow: '#c44dff',
+}
+const tagLabel: Record<RollItem['tag'], string> = {
+  pay: '交易',
+  view: '浏览',
+  follow: '关注',
+}
+
+// 生命周期
 onMounted(() => {
-  rollingTimer = window.setInterval(() => {
-    const newItem = {
-      time: timeStr.value,
-      user: `user_${1000 + Math.floor(Math.random() * 200)}`,
-      action: ['发布笔记', '完成支付', '关注创作者', '购买会员', '发布评论'][Math.floor(Math.random() * 5)] + (Math.random() > 0.5 ? ` #${Math.floor(Math.random() * 100)}` : ''),
-      amount: Math.random() > 0.5 ? `¥ ${(Math.random() * 300).toFixed(0)}.00` : '',
-    }
-    rollingData.value.unshift(newItem)
-    if (rollingData.value.length > 12) rollingData.value.pop()
-  }, 3000)
+  calcScale()
+  window.addEventListener('resize', calcScale)
+  animateIn()
+  timer1 = window.setInterval(tick, 1000)
+  timer2 = window.setInterval(() => metrics.value.forEach(pulseMetric), 2500)
+  timer3 = window.setInterval(pushNew, 2800)
 })
-onBeforeUnmount(() => clearInterval(rollingTimer))
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', calcScale)
+  clearInterval(timer1)
+  clearInterval(timer2)
+  clearInterval(timer3)
+})
 
 // 返回
 function goBack() {
@@ -307,16 +350,24 @@ function goBack() {
 <template>
   <div class="bigscreen-wrapper">
     <div class="bigscreen" :style="{ transform: `scale(${scale})` }">
-      <!-- ===== 顶部 ===== -->
+      <!-- 顶部 -->
       <header class="bs-header">
         <div class="bs-header-left">
           <div class="status-dot"></div>
           <span>SYSTEM ONLINE</span>
+          <div class="header-sep"></div>
+          <span class="header-meta">NODE: SH-01</span>
         </div>
+
         <div class="bs-header-center">
-          <div class="bs-title-zh">StreamHub 数据驾驶舱</div>
-          <div class="bs-title-en">REAL-TIME DATA COCKPIT</div>
+          <div class="bs-title-deco left"></div>
+          <div class="bs-title-block">
+            <div class="bs-title-zh">StreamHub 数据驾驶舱</div>
+            <div class="bs-title-en">REAL-TIME DATA COCKPIT</div>
+          </div>
+          <div class="bs-title-deco right"></div>
         </div>
+
         <div class="bs-header-right">
           <div class="bs-time">
             <div class="bs-time-hms num">{{ timeStr }}</div>
@@ -328,7 +379,7 @@ function goBack() {
         </div>
       </header>
 
-      <!-- ===== 主体 3 列 ===== -->
+      <!-- 主体 3 列 -->
       <main class="bs-main">
         <!-- 左列 -->
         <section class="bs-col">
@@ -350,15 +401,30 @@ function goBack() {
               class="bs-metric"
               :style="{ '--mc': m.color }"
             >
+              <!-- 装饰环 -->
+              <svg class="bs-metric-ring" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" stroke-width="1" opacity="0.15" />
+                <circle
+                  cx="50" cy="50" r="44"
+                  fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-dasharray="276"
+                  stroke-dashoffset="80"
+                  transform="rotate(-90 50 50)"
+                />
+              </svg>
               <div class="bs-metric-label">{{ m.label }}</div>
-              <div class="bs-metric-value num" :style="{ color: m.color }">
-                {{ formatted(m.value) }}
+              <div class="bs-metric-value-row">
+                <span v-if="m.unit" class="bs-metric-unit" :style="{ color: m.color }">{{ m.unit }}</span>
+                <span class="bs-metric-value num" :style="{ color: m.color }">{{ formatted(m.value) }}</span>
               </div>
-              <div class="bs-metric-bar">
-                <div
-                  class="bs-metric-bar-fill"
-                  :style="{ background: `linear-gradient(90deg, transparent, ${m.color})` }"
-                ></div>
+              <div class="bs-metric-trend" :class="m.trend >= 0 ? 'up' : 'down'">
+                <el-icon size="11">
+                  <CaretTop v-if="m.trend >= 0" />
+                  <CaretBottom v-else />
+                </el-icon>
+                <span>{{ Math.abs(m.trend).toFixed(1) }}%</span>
+                <span class="bs-metric-trend-label">实时</span>
               </div>
             </div>
           </div>
@@ -378,17 +444,21 @@ function goBack() {
         </section>
       </main>
 
-      <!-- ===== 底部滚动表格 ===== -->
+      <!-- 底部滚动表格 -->
       <footer class="bs-footer">
         <Panel title="实时事件流" icon="BellFilled" class="bs-rolling">
           <div class="bs-rolling-list">
             <transition-group name="roll" tag="div">
               <div v-for="(r, i) in rollingData" :key="r.time + r.user + i" class="bs-rolling-item">
                 <span class="r-time num">{{ r.time }}</span>
+                <span
+                  class="r-tag"
+                  :style="{ color: tagColor[r.tag], background: tagColor[r.tag] + '20' }"
+                >{{ tagLabel[r.tag] }}</span>
                 <span class="r-user">{{ r.user }}</span>
                 <span class="r-action">{{ r.action }}</span>
                 <span class="r-amount" v-if="r.amount">{{ r.amount }}</span>
-                <span class="r-dot"></span>
+                <span class="r-dot" :style="{ background: tagColor[r.tag] }"></span>
               </div>
             </transition-group>
           </div>
@@ -400,12 +470,14 @@ function goBack() {
       <div class="bs-corner bs-corner-tr"></div>
       <div class="bs-corner bs-corner-bl"></div>
       <div class="bs-corner bs-corner-br"></div>
+
+      <!-- 扫描线 -->
+      <div class="bs-scan-line"></div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-// Panel 组件(简单包装,避免大块重复)
 import { defineComponent, h } from 'vue'
 export const Panel = defineComponent({
   name: 'Panel',
@@ -414,14 +486,13 @@ export const Panel = defineComponent({
     return () =>
       h('div', { class: 'bs-panel' }, [
         h('div', { class: 'bs-panel-head' }, [
-          props.icon
-            ? h('span', { class: 'bs-panel-icon' }, [
-                h('i', { class: 'el-icon' }, [
-                  h('el-icon', null, () => h('component', { is: props.icon })),
-                ]),
-              ])
-            : null,
+          h('div', { class: 'bs-panel-icon' }, [
+            h('i', { class: 'el-icon' }, [
+              h('el-icon', null, () => h('component', { is: props.icon })),
+            ]),
+          ]),
           h('span', { class: 'bs-panel-title' }, props.title),
+          h('div', { class: 'bs-panel-head-line' }),
         ]),
         h('div', { class: 'bs-panel-body' }, slots.default?.()),
       ])
@@ -449,15 +520,36 @@ export default { components: { Panel } }
   transform-origin: center center;
   position: relative;
   background:
-    radial-gradient(ellipse at top, rgba(0, 240, 255, 0.08), transparent 50%),
-    radial-gradient(ellipse at bottom, rgba(196, 77, 255, 0.05), transparent 50%),
+    radial-gradient(ellipse at top, rgba(0, 240, 255, 0.1), transparent 50%),
+    radial-gradient(ellipse at bottom, rgba(196, 77, 255, 0.06), transparent 50%),
     linear-gradient(180deg, #050b18 0%, #0a1a2e 50%, #050b18 100%);
   display: grid;
-  grid-template-rows: 80px 1fr 200px;
+  grid-template-rows: 100px 1fr 240px;
   gap: 16px;
-  padding: 16px 24px;
+  padding: 20px 28px;
   overflow: hidden;
   color: #fff;
+}
+
+// ===== 扫描线 =====
+.bs-scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00f0ff, transparent);
+  opacity: 0.4;
+  animation: scanMove 6s linear infinite;
+  pointer-events: none;
+  z-index: 5;
+}
+
+@keyframes scanMove {
+  0% { top: 0; opacity: 0; }
+  10% { opacity: 0.4; }
+  90% { opacity: 0.4; }
+  100% { top: 100%; opacity: 0; }
 }
 
 // ===== 头部 =====
@@ -466,15 +558,16 @@ export default { components: { Panel } }
   align-items: center;
   justify-content: space-between;
   position: relative;
+  z-index: 2;
 }
 
 .bs-header-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: #00f0ff;
   font-size: 13px;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   font-weight: 500;
 }
 
@@ -487,33 +580,61 @@ export default { components: { Panel } }
   animation: pulse 1.5s ease-in-out infinite;
 }
 
+.header-sep {
+  width: 1px;
+  height: 14px;
+  background: rgba(0, 240, 255, 0.3);
+  margin: 0 4px;
+}
+
+.header-meta {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(0.8); }
 }
 
 .bs-header-center {
-  text-align: center;
-  position: relative;
-  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
+.bs-title-deco {
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00f0ff);
+  &.right {
+    background: linear-gradient(90deg, #00f0ff, transparent);
+  }
+}
+
+.bs-title-block { text-align: center; }
+
 .bs-title-zh {
-  font-size: 32px;
+  font-size: 34px;
   font-weight: 800;
-  letter-spacing: 6px;
+  letter-spacing: 8px;
   background: linear-gradient(180deg, #fff 0%, #00f0ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-shadow: 0 0 30px rgba(0, 240, 255, 0.5);
+  line-height: 1;
 }
 
 .bs-title-en {
   font-size: 11px;
-  letter-spacing: 4px;
+  letter-spacing: 5px;
   color: rgba(0, 240, 255, 0.6);
-  margin-top: 4px;
+  margin-top: 6px;
   font-weight: 500;
 }
 
@@ -525,33 +646,39 @@ export default { components: { Panel } }
 
 .bs-time {
   text-align: right;
+  padding-right: 16px;
+  border-right: 1px solid rgba(0, 240, 255, 0.2);
 }
 
 .bs-time-hms {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
   color: #00f0ff;
   line-height: 1;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   text-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
 }
 
 .bs-time-date {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
-  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 6px;
+  letter-spacing: 0.5px;
 }
 
 .bs-back {
   color: rgba(255, 255, 255, 0.7) !important;
-  &:hover { color: #00f0ff !important; }
+  border: 1px solid rgba(0, 240, 255, 0.3) !important;
+  border-radius: 6px !important;
+  &:hover { color: #00f0ff !important; border-color: #00f0ff !important; }
 }
 
 // ===== 主体 3 列 =====
 .bs-main {
   display: grid;
-  grid-template-columns: 1fr 1.3fr 1fr;
+  grid-template-columns: 1fr 1.2fr 1fr;
   gap: 16px;
+  min-height: 0;
 }
 
 .bs-col {
@@ -563,7 +690,7 @@ export default { components: { Panel } }
 
 .bs-col-center {
   display: grid;
-  grid-template-rows: 200px 1fr;
+  grid-template-rows: 220px 1fr;
   gap: 16px;
 }
 
@@ -577,13 +704,14 @@ export default { components: { Panel } }
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding: 12px 16px 8px;
+  padding: 14px 18px 10px;
+  overflow: hidden;
   &::before,
   &::after {
     content: '';
     position: absolute;
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     border: 2px solid #00f0ff;
   }
   &::before {
@@ -604,13 +732,29 @@ export default { components: { Panel } }
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: #00f0ff;
-  margin-bottom: 8px;
-  padding-bottom: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
   border-bottom: 1px solid rgba(0, 240, 255, 0.1);
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  position: relative;
+}
+
+:deep(.bs-panel-head-line) {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(0, 240, 255, 0.4), transparent);
+  margin-left: 4px;
+}
+
+:deep(.bs-panel-icon) {
+  display: flex;
+  align-items: center;
+  color: #00f0ff;
+  filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.6));
+  :deep(.el-icon) { font-size: 16px; }
 }
 
 :deep(.bs-panel-body) {
@@ -629,7 +773,7 @@ export default { components: { Panel } }
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  padding: 16px;
+  padding: 18px 20px;
   background: linear-gradient(135deg, rgba(0, 240, 255, 0.04), rgba(196, 77, 255, 0.02));
   border: 1px solid rgba(0, 240, 255, 0.15);
   border-radius: 4px;
@@ -638,7 +782,7 @@ export default { components: { Panel } }
     content: '';
     position: absolute;
     top: -1px; left: -1px;
-    width: 12px; height: 12px;
+    width: 14px; height: 14px;
     border: 2px solid #00f0ff;
     border-right: none; border-bottom: none;
   }
@@ -646,7 +790,7 @@ export default { components: { Panel } }
     content: '';
     position: absolute;
     bottom: -1px; right: -1px;
-    width: 12px; height: 12px;
+    width: 14px; height: 14px;
     border: 2px solid #00f0ff;
     border-left: none; border-top: none;
   }
@@ -655,60 +799,85 @@ export default { components: { Panel } }
 .bs-metric {
   text-align: center;
   position: relative;
-  padding: 8px 4px;
+  padding: 4px 4px 2px;
+  color: var(--mc);
   &::after {
     content: '';
     position: absolute;
     right: 0;
-    top: 25%;
-    bottom: 25%;
+    top: 20%;
+    bottom: 20%;
     width: 1px;
-    background: linear-gradient(180deg, transparent, rgba(0, 240, 255, 0.2), transparent);
+    background: linear-gradient(180deg, transparent, currentColor, transparent);
+    opacity: 0.25;
   }
   &:last-child::after { display: none; }
+}
+
+.bs-metric-ring {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 36px;
+  height: 36px;
+  color: var(--mc);
+  opacity: 0.5;
+  animation: ringRotate 12s linear infinite;
+}
+
+@keyframes ringRotate {
+  to { transform: rotate(360deg); }
 }
 
 .bs-metric-label {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.6);
   margin-bottom: 6px;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  text-align: left;
+  padding-left: 4px;
+}
+
+.bs-metric-value-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  line-height: 1;
+}
+
+.bs-metric-unit {
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.7;
 }
 
 .bs-metric-value {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 36px;
+  font-weight: 800;
   line-height: 1.1;
   text-shadow: 0 0 16px currentColor;
   letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
 }
 
-.bs-metric-bar {
-  height: 2px;
-  background: rgba(0, 240, 255, 0.1);
+.bs-metric-trend {
   margin-top: 8px;
-  overflow: hidden;
-}
-
-.bs-metric-bar-fill {
-  height: 100%;
-  width: 100%;
-  animation: barSlide 2s ease-out;
-}
-
-@keyframes barSlide {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  &.up { color: #16c099; background: rgba(22, 192, 153, 0.12); }
+  &.down { color: #ff4757; background: rgba(255, 71, 87, 0.12); }
+  .bs-metric-trend-label { color: rgba(255, 255, 255, 0.4); margin-left: 2px; }
 }
 
 // ===== 底部滚动 =====
-.bs-footer {
-  min-height: 0;
-}
-
-:deep(.bs-rolling) {
-  height: 100%;
-}
+.bs-footer { min-height: 0; }
+:deep(.bs-rolling) { height: 100%; }
 
 .bs-rolling-list {
   height: 100%;
@@ -718,25 +887,35 @@ export default { components: { Panel } }
 
 .bs-rolling-item {
   display: grid;
-  grid-template-columns: 90px 110px 1fr 110px 4px;
+  grid-template-columns: 90px 60px 100px 1fr 100px 4px;
   align-items: center;
-  gap: 12px;
-  padding: 5px 0;
+  gap: 14px;
+  padding: 6px 0;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.85);
-  border-bottom: 1px dashed rgba(0, 240, 255, 0.06);
+  border-bottom: 1px dashed rgba(0, 240, 255, 0.08);
+  &:last-child { border-bottom: none; }
 }
 
 .r-time { color: #00f0ff; font-weight: 600; }
-.r-user { color: rgba(196, 77, 255, 0.9); }
-.r-action { color: rgba(255, 255, 255, 0.85); }
-.r-amount { color: #16c099; font-weight: 600; text-align: right; }
+
+.r-tag {
+  display: inline-block;
+  text-align: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.r-user { color: rgba(196, 77, 255, 0.95); }
+.r-action { color: rgba(255, 255, 255, 0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r-amount { color: #16c099; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
 .r-dot {
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: #00f0ff;
-  box-shadow: 0 0 6px #00f0ff;
+  box-shadow: 0 0 8px currentColor;
 }
 
 .roll-enter-active,
@@ -745,23 +924,24 @@ export default { components: { Panel } }
 }
 .roll-enter-from {
   opacity: 0;
-  transform: translateY(-12px);
+  transform: translateX(-20px);
 }
 .roll-leave-to {
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateX(20px);
 }
 
 // ===== 角标 =====
 .bs-corner {
   position: absolute;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border: 2px solid #00f0ff;
   pointer-events: none;
-  &-tl { top: 0; left: 0; border-right: none; border-bottom: none; }
-  &-tr { top: 0; right: 0; border-left: none; border-bottom: none; }
-  &-bl { bottom: 0; left: 0; border-right: none; border-top: none; }
-  &-br { bottom: 0; right: 0; border-left: none; border-top: none; }
+  z-index: 4;
+  &-tl { top: 6px; left: 6px; border-right: none; border-bottom: none; }
+  &-tr { top: 6px; right: 6px; border-left: none; border-bottom: none; }
+  &-bl { bottom: 6px; left: 6px; border-right: none; border-top: none; }
+  &-br { bottom: 6px; right: 6px; border-left: none; border-top: none; }
 }
 </style>
