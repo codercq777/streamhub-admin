@@ -1,13 +1,25 @@
 @use './var.scss' as *;
 
 :root {
-  // Element Plus 主题色覆盖
-  --el-color-primary: #{$primary};
-  --el-color-primary-light-3: #ff6470;
-  --el-color-primary-light-5: #ff9aa3;
-  --el-color-primary-light-7: #ffcfd3;
-  --el-color-primary-light-8: #ffe4e8;
-  --el-color-primary-light-9: #fff5f6;
+  // ===== 品牌色(主题切换的"源",由 utils/theme.ts 写入) =====
+  --brand-color: #ff2442;
+  --brand-color-light-3: #ff6470;
+  --brand-color-light-5: #ff9aa3;
+  --brand-color-light-7: #ffcfd3;
+  --brand-color-light-8: #ffe4e8;
+  --brand-color-light-9: #fff5f6;
+  --brand-soft: #ffe4e8;
+  --brand-soft-2: #fff5f6;
+  --brand-gradient: linear-gradient(135deg, #ff2442 0%, #ff6b6b 100%);
+  --primary-gradient: linear-gradient(135deg, #ff2442 0%, #ff6b6b 50%, #c44dff 100%);
+
+  // ===== Element Plus 主题色(全部绑定到品牌色 CSS 变量) =====
+  --el-color-primary: var(--brand-color);
+  --el-color-primary-light-3: var(--brand-color-light-3);
+  --el-color-primary-light-5: var(--brand-color-light-5);
+  --el-color-primary-light-7: var(--brand-color-light-7);
+  --el-color-primary-light-8: var(--brand-color-light-8);
+  --el-color-primary-light-9: var(--brand-color-light-9);
   --el-color-primary-dark-2: #cc1d35;
 
   --el-color-success: #{$success};
@@ -22,9 +34,6 @@
   --el-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
     'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
 
-  // 自定义变量
-  --brand-gradient: #{$brand-gradient};
-  --primary-gradient: #{$primary-gradient};
   --header-height: #{$header-height};
   --sidebar-width: #{$sidebar-width};
   --sidebar-collapsed-width: #{$sidebar-collapsed-width};
@@ -180,4 +189,105 @@ html.dark {
     transform: translateY(-2px);
     box-shadow: $shadow-lg;
   }
+}
+
+// ===== 主题切换 Popover =====
+.theme-popover {
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.theme-panel {
+  background: #fff;
+  border-radius: $radius-md;
+  padding: 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid $border-light;
+  width: 280px;
+}
+html.dark .theme-panel {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.tp-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: $text-primary;
+  margin-bottom: 12px;
+}
+html.dark .tp-title { color: #e2e8f0; }
+
+.tp-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 6px;
+}
+
+.tp-swatch {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-fast;
+  position: relative;
+  border: 2px solid transparent;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+  }
+  &.active {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px var(--brand-color), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  }
+}
+
+.tp-moon {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 14px;
+  height: 14px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tp-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 10px;
+  color: $text-tertiary;
+  padding: 0 4px;
+}
+
+.tp-divider {
+  height: 1px;
+  background: $border-light;
+  margin: 14px 0 12px;
+}
+html.dark .tp-divider { background: #334155; }
+
+.tp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: $text-primary;
+}
+html.dark .tp-row { color: #e2e8f0; }
+
+.tp-hint {
+  font-size: 11px;
+  color: $text-tertiary;
+  margin-top: 8px;
+  line-height: 1.5;
 }

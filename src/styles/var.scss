@@ -1,10 +1,11 @@
-// ===== 颜色 =====
-$primary: #ff2442;
-$primary-light: #ff6470;
-$primary-lighter: #ff9aa3;
-$primary-soft: #ffe4e8;
-$primary-gradient: linear-gradient(135deg, #ff2442 0%, #ff6b6b 50%, #c44dff 100%);
-$brand-gradient: linear-gradient(135deg, #ff2442 0%, #ff6b6b 100%);
+// ===== 颜色(品牌色用 CSS 变量,响应主题切换) =====
+$primary: var(--brand-color, #ff2442);
+$primary-light: var(--brand-color-light-3, #ff6470);
+$primary-lighter: var(--brand-color-light-5, #ff9aa3);
+$primary-soft: var(--brand-soft, #ffe4e8);
+$primary-softer: var(--brand-soft-2, #fff5f6);
+$primary-gradient: var(--primary-gradient, linear-gradient(135deg, #ff2442 0%, #ff6b6b 50%, #c44dff 100%));
+$brand-gradient: var(--brand-gradient, linear-gradient(135deg, #ff2442 0%, #ff6b6b 100%));
 
 $success: #16c099;
 $success-soft: #d1fae5;

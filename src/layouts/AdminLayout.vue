@@ -134,14 +134,52 @@ function toggleFullscreen() {
               <el-icon size="18"><Refresh /></el-icon>
             </el-button>
           </el-tooltip>
-          <el-tooltip :content="app.isDark ? '切换亮色' : '切换暗色'">
-            <el-button text class="header-icon-btn" @click="app.toggleDark()">
-              <el-icon size="18">
-                <Sunny v-if="app.isDark" />
-                <Moon v-else />
-              </el-icon>
-            </el-button>
-          </el-tooltip>
+
+          <!-- 主题切换 -->
+          <el-popover
+            placement="bottom-end"
+            :width="280"
+            trigger="click"
+            popper-class="theme-popover"
+          >
+            <template #reference>
+              <el-button text class="header-icon-btn" title="主题">
+                <el-icon size="18"><Brush /></el-icon>
+              </el-button>
+            </template>
+
+            <div class="theme-panel">
+              <div class="tp-title">主题色</div>
+              <div class="tp-grid">
+                <div
+                  v-for="t in app.themes"
+                  :key="t.name"
+                  class="tp-swatch"
+                  :class="{ active: app.themeName === t.name }"
+                  :style="{ background: t.primary }"
+                  @click="app.setTheme(t.name)"
+                >
+                  <el-icon v-if="app.themeName === t.name" size="14" color="#fff"><Check /></el-icon>
+                  <span v-if="t.isDark" class="tp-moon"><el-icon size="10" color="#fff"><Moon /></el-icon></span>
+                </div>
+              </div>
+              <div class="tp-labels">
+                <span class="tp-l-hint">浅</span>
+                <span class="tp-l-hint tp-l-hint-dark">暗</span>
+              </div>
+              <div class="tp-divider"></div>
+              <div class="tp-row">
+                <span class="tp-row-label">暗色模式</span>
+                <el-switch
+                  :model-value="app.isDark"
+                  @change="app.toggleDark()"
+                  size="small"
+                />
+              </div>
+              <div class="tp-hint">提示:暗夜紫 / 炭黑主题自带暗色模式</div>
+            </div>
+          </el-popover>
+
           <el-tooltip content="全屏">
             <el-button text class="header-icon-btn" @click="toggleFullscreen">
               <el-icon size="18"><FullScreen /></el-icon>

@@ -4,6 +4,9 @@ import VChart from 'vue-echarts'
 import { mockMetrics, mockGrowthData, mockPublishData, mockNotes } from '@/api/mock'
 import { compact, formatDate, relativeTime } from '@/utils/format'
 
+// 图表区间切换
+const chartRange = ref(1) // 1=30天 2=7天 3=24小时
+
 // 指标卡配色
 const colorMap: Record<string, [string, string, string]> = {
   primary: ['#fff5f6', '#ff6470', '#ff2442'],
@@ -205,7 +208,7 @@ const systemStatus = ref([
               <h3 class="card-title">用户增长趋势</h3>
               <p class="card-sub">近 30 天 UV / PV 数据</p>
             </div>
-            <el-radio-group v-model="1" size="small">
+            <el-radio-group v-model="chartRange" size="small">
               <el-radio-button :value="1">30 天</el-radio-button>
               <el-radio-button :value="2">7 天</el-radio-button>
               <el-radio-button :value="3">24 小时</el-radio-button>

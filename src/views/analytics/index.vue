@@ -165,10 +165,14 @@ const retentionOption = computed(() => ({
   tooltip: { trigger: 'axis', backgroundColor: 'rgba(255,255,255,0.95)' },
   legend: {
     data: ['新增用户', '次日留存', '7 日留存', '30 日留存'],
-    right: 0,
-    textStyle: { color: '#6b7280' },
+    right: 8,
+    top: 4,
+    itemWidth: 10,
+    itemHeight: 10,
+    itemGap: 16,
+    textStyle: { color: '#6b7280', fontSize: 12 },
   },
-  grid: { left: 30, right: 16, top: 36, bottom: 30 },
+  grid: { left: 36, right: 16, top: 44, bottom: 32, containLabel: false },
   xAxis: {
     type: 'category',
     data: ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周', '第7周', '第8周'],
@@ -181,6 +185,8 @@ const retentionOption = computed(() => ({
     splitLine: { lineStyle: { color: '#f3f4f6', type: 'dashed' } },
     axisLabel: { color: '#9ca3af', fontSize: 11 },
   },
+  barGap: '30%',
+  barCategoryGap: '45%',
   series: [
     {
       name: '新增用户',
