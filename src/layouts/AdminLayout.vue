@@ -3,6 +3,7 @@ import { computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
+import { getAccessibleRoutes } from '@/router'
 import { ElMessageBox } from 'element-plus'
 
 const router = useRouter()
@@ -32,13 +33,11 @@ const breadcrumbs = computed(() => {
   return list
 })
 
-// 菜单
-const menus = [
-  { path: '/dashboard', title: '数据看板', icon: 'Odometer' },
-  { path: '/audit', title: '内容审核', icon: 'CircleCheck' },
-  { path: '/users', title: '用户管理', icon: 'User' },
-  { path: '/analytics', title: '数据分析', icon: 'TrendCharts' },
-]
+// 菜单(根据角色动态过滤)
+const menus = computed(() => {
+  const list = getAccessibleRoutes(user.roles as unknown as string[])
+  return (list[0]?.children || []).filter((c: any) => c.title && c.path !== '/')
+})
 
 function handleLogout() {
   ElMessageBox.confirm('确认退出登录?', '提示', {

@@ -45,3 +45,27 @@ export interface LoginForm {
   password: string
   remember: boolean
 }
+
+export type LogType =
+  | 'audit_approve'
+  | 'audit_reject'
+  | 'audit_batch'
+  | 'user_ban'
+  | 'user_unban'
+  | 'user_create'
+  | 'data_export'
+  | 'auth_login'
+  | 'auth_logout'
+  | 'settings_edit'
+
+export interface LogEntry {
+  id: number
+  type: LogType
+  action: string
+  target: string
+  operator: string
+  operatorRole: string
+  ip: string
+  status: 'success' | 'failed'
+  timestamp: string
+}

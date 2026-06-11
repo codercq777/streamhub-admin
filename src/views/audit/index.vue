@@ -3,6 +3,7 @@ import { ref, computed, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { mockNotes } from '@/api/mock'
 import { compact, formatDate, relativeTime } from '@/utils/format'
+import { useLogStore } from '@/stores/log'
 import type { NoteItem } from '@/types'
 
 const allNotes = ref<NoteItem[]>([...mockNotes])
@@ -14,6 +15,8 @@ const selected = ref<number[]>([])
 const detailVisible = ref(false)
 const detailNote = ref<NoteItem | null>(null)
 const rejectDialog = ref({ visible: false, noteId: 0, reason: '' })
+
+const logStore = useLogStore()
 
 const statusMap = {
   pending: { label: '待审核', type: 'warning' as const, color: '#ff9f43' },
@@ -60,6 +63,11 @@ function approve(note: NoteItem) {
   if (idx >= 0) {
     allNotes.value[idx] = { ...note, status: 'approved', rejectReason: undefined }
     ElMessage.success(`已通过:${note.title}`)
+    logStore.addLog({
+      type: 'audit_approve',
+      action: '审核通过',
+      target: `笔记 #${note.id}《${note.title}》`,
+    })
   }
 }
 
@@ -74,6 +82,11 @@ function batchApprove() {
       : n
   )
   ElMessage.success(`已批量通过 ${selected.value.length} 条`)
+  logStore.addLog({
+    type: 'audit_batch',
+    action: '批量审核通过',
+    target: `${selected.value.length} 条笔记`,
+  })
   clearSelection()
 }
 
@@ -86,12 +99,20 @@ function confirmReject() {
     ElMessage.warning('请填写拒绝原因')
     return
   }
+  const note = allNotes.value.find((n) => n.id === rejectDialog.value.noteId)
   allNotes.value = allNotes.value.map((n) =>
     n.id === rejectDialog.value.noteId
       ? { ...n, status: 'rejected' as const, rejectReason: rejectDialog.value.reason }
       : n
   )
   ElMessage.success('已拒绝')
+  if (note) {
+    logStore.addLog({
+      type: 'audit_reject',
+      action: '审核拒绝',
+      target: `笔记 #${note.id}《${note.title}》 - ${rejectDialog.value.reason}`,
+    })
+  }
   rejectDialog.value.visible = false
 }
 
@@ -144,6 +165,7 @@ function showDetail(note: NoteItem) {
       </el-select>
       <div class="toolbar-spacer"></div>
       <el-button
+        v-permission="'audit:batch'"
         type="primary"
         :disabled="!selected.length"
         @click="batchApprove"

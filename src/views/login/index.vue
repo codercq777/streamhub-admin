@@ -32,17 +32,55 @@ async function handleLogin() {
     loading.value = true
     try {
       await userStore.login({ ...form })
-      ElMessage.success('登录成功')
+      ElMessage.success(`欢迎,${userStore.roleLabel[userStore.primaryRole]}`)
       router.push('/')
+    } catch (e: any) {
+      ElMessage.error(e?.message || '登录失败')
     } finally {
       loading.value = false
     }
   })
 }
 
-function fillDemo(kind: 'admin' | 'operator') {
-  form.username = kind
-  form.password = 'demo123'
+interface DemoAccount {
+  key: string
+  label: string
+  desc: string
+  username: string
+  password: string
+  color: string
+}
+
+const demoAccounts: DemoAccount[] = [
+  {
+    key: 'admin',
+    label: '超级管理员',
+    desc: '全部权限',
+    username: 'admin',
+    password: 'admin123',
+    color: '#ff2442',
+  },
+  {
+    key: 'operator',
+    label: '内容运营',
+    desc: '审核 + 日志',
+    username: 'operator',
+    password: 'op123',
+    color: '#2b6fff',
+  },
+  {
+    key: 'viewer',
+    label: '只读账号',
+    desc: '仅查看',
+    username: 'viewer',
+    password: 'view123',
+    color: '#16c099',
+  },
+]
+
+function fillDemo(acct: DemoAccount) {
+  form.username = acct.username
+  form.password = acct.password
 }
 
 onMounted(() => {
@@ -160,9 +198,19 @@ onMounted(() => {
           </el-button>
 
           <div class="quick-fill">
-            <span class="quick-tip">体验账号</span>
-            <el-button text size="small" @click="fillDemo('admin')">admin</el-button>
-            <el-button text size="small" @click="fillDemo('operator')">operator</el-button>
+            <div class="quick-tip">体验账号(点击自动填入)</div>
+            <div class="quick-cards">
+              <div
+                v-for="a in demoAccounts"
+                :key="a.key"
+                class="quick-card"
+                :style="{ '--acct-color': a.color }"
+                @click="fillDemo(a)"
+              >
+                <div class="qc-label">{{ a.label }}</div>
+                <div class="qc-desc">{{ a.desc }}</div>
+              </div>
+            </div>
           </div>
         </el-form>
 
@@ -459,19 +507,61 @@ html.dark .login-form {
 
 .quick-fill {
   margin-top: 20px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
   font-size: 12px;
   color: $text-tertiary;
   .quick-tip {
-    margin-right: 4px;
+    margin-bottom: 8px;
   }
-  :deep(.el-button) {
-    color: $text-secondary;
-    font-size: 12px;
-    &:hover { color: $primary; }
+}
+
+.quick-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.quick-card {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: $bg-page;
+  border: 1px solid $border-light;
+  cursor: pointer;
+  transition: all $transition-fast;
+  position: relative;
+  overflow: hidden;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--acct-color), transparent);
+    opacity: 0;
+    transition: opacity $transition;
   }
+  &:hover {
+    border-color: var(--acct-color);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    &::before { opacity: 0.08; }
+  }
+}
+
+html.dark .quick-card { background: #1e293b; border-color: #334155; }
+
+.qc-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: $text-primary;
+  position: relative;
+  z-index: 1;
+}
+html.dark .qc-label { color: #e2e8f0; }
+
+.qc-desc {
+  font-size: 11px;
+  color: $text-tertiary;
+  margin-top: 2px;
+  position: relative;
+  z-index: 1;
 }
 
 .form-bottom {

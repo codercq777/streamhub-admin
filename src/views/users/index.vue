@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { mockUsers } from '@/api/mock'
 import { compact, formatDate } from '@/utils/format'
+import { useLogStore } from '@/stores/log'
 import type { UserInfo } from '@/types'
 
 const allUsers = ref<UserInfo[]>([...mockUsers])
@@ -12,6 +13,8 @@ const roleFilter = ref<'' | UserInfo['role']>('')
 
 const detailVisible = ref(false)
 const detailUser = ref<UserInfo | null>(null)
+
+const logStore = useLogStore()
 
 const stats = computed(() => ({
   total: allUsers.value.length,
@@ -59,6 +62,11 @@ function banUser(user: UserInfo) {
     if (idx >= 0) {
       allUsers.value[idx] = { ...user, status: 'banned' }
       ElMessage.success('已封禁')
+      logStore.addLog({
+        type: 'user_ban',
+        action: '封禁用户',
+        target: `user_${user.id} @${user.nickname}`,
+      })
     }
   }).catch(() => {})
 }
@@ -68,6 +76,11 @@ function unbanUser(user: UserInfo) {
   if (idx >= 0) {
     allUsers.value[idx] = { ...user, status: 'active' }
     ElMessage.success('已解封')
+    logStore.addLog({
+      type: 'user_unban',
+      action: '解封用户',
+      target: `user_${user.id} @${user.nickname}`,
+    })
   }
 }
 
@@ -140,7 +153,7 @@ function showDetail(user: UserInfo) {
         <el-option label="普通用户" value="viewer" />
       </el-select>
       <div class="toolbar-spacer"></div>
-      <el-button type="primary">
+      <el-button v-permission="'user:create'" type="primary">
         <el-icon><Plus /></el-icon>新建用户
       </el-button>
     </div>
@@ -211,6 +224,7 @@ function showDetail(user: UserInfo) {
           </el-button>
           <el-button
             v-if="row.status === 'active' && row.role !== 'admin'"
+            v-permission="'user:ban'"
             size="small"
             text
             type="danger"
@@ -220,6 +234,7 @@ function showDetail(user: UserInfo) {
           </el-button>
           <el-button
             v-else-if="row.status === 'banned'"
+            v-permission="'user:ban'"
             size="small"
             text
             type="success"
