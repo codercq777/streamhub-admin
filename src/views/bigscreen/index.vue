@@ -333,22 +333,61 @@ onMounted(() => {
   timer1 = window.setInterval(tick, 1000)
   timer2 = window.setInterval(() => metrics.value.forEach(pulseMetric), 2500)
   timer3 = window.setInterval(pushNew, 2800)
+  document.addEventListener('fullscreenchange', onFullscreenChange)
 })
 onBeforeUnmount(() => {
   window.removeEventListener('resize', calcScale)
   clearInterval(timer1)
   clearInterval(timer2)
   clearInterval(timer3)
+  document.removeEventListener('fullscreenchange', onFullscreenChange)
+  // 离开页面时如在全屏,自动退出,避免浏览器卡住
+  if (document.fullscreenElement) {
+    document.exitFullscreen().catch(() => {})
+  }
 })
 
 // 返回
 function goBack() {
   router.push('/dashboard')
 }
+
+// ===== 全屏模式 =====
+const isFullscreen = ref(false)
+const wrapperEl = ref<HTMLElement | null>(null)
+
+async function toggleFullscreen() {
+  if (!wrapperEl.value) return
+  try {
+    if (!document.fullscreenElement) {
+      await wrapperEl.value.requestFullscreen()
+    } else {
+      await document.exitFullscreen()
+    }
+  } catch (e) {
+    console.warn('Fullscreen toggle failed:', e)
+  }
+}
+
+function onFullscreenChange() {
+  isFullscreen.value = !!document.fullscreenElement
+}
+
+// 监听 Esc 退出全屏(Fullscreen API 触发)
+onMounted(() => {
+  document.addEventListener('fullscreenchange', onFullscreenChange)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('fullscreenchange', onFullscreenChange)
+  // 离开页面时如在全屏,自动退出,避免页面卸载后浏览器卡住
+  if (document.fullscreenElement) {
+    document.exitFullscreen().catch(() => {})
+  }
+})
 </script>
 
 <template>
-  <div class="bigscreen-wrapper">
+  <div ref="wrapperEl" class="bigscreen-wrapper">
     <div class="bigscreen" :style="{ transform: `scale(${scale})` }">
       <!-- 顶部 -->
       <header class="bs-header">
@@ -373,6 +412,19 @@ function goBack() {
             <div class="bs-time-hms num">{{ timeStr }}</div>
             <div class="bs-time-date">{{ dateStr }}</div>
           </div>
+          <el-button
+            text
+            class="bs-action-btn"
+            :class="{ active: isFullscreen }"
+            :title="isFullscreen ? '退出全屏' : '进入全屏'"
+            @click="toggleFullscreen"
+          >
+            <el-icon size="16">
+              <FullScreen v-if="!isFullscreen" />
+              <Aim v-else />
+            </el-icon>
+            <span>{{ isFullscreen ? '退出' : '全屏' }}</span>
+          </el-button>
           <el-button text class="bs-back" @click="goBack">
             <el-icon><Back /></el-icon>返回
           </el-button>
@@ -671,6 +723,29 @@ export default { components: { Panel } }
   border: 1px solid rgba(0, 240, 255, 0.3) !important;
   border-radius: 6px !important;
   &:hover { color: #00f0ff !important; border-color: #00f0ff !important; }
+}
+
+.bs-action-btn {
+  color: rgba(255, 255, 255, 0.75) !important;
+  border: 1px solid rgba(0, 240, 255, 0.3) !important;
+  border-radius: 6px !important;
+  padding: 4px 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px;
+  font-size: 13px !important;
+  transition: all 0.25s ease !important;
+  &:hover {
+    color: #00f0ff !important;
+    border-color: #00f0ff !important;
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+  }
+  &.active {
+    color: #fff !important;
+    background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(196, 77, 255, 0.2)) !important;
+    border-color: #00f0ff !important;
+    box-shadow: 0 0 16px rgba(0, 240, 255, 0.5);
+  }
 }
 
 // ===== 主体 3 列 =====

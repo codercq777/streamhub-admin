@@ -47,23 +47,25 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '数据分析', icon: 'TrendCharts', roles: ['admin', 'operator'] },
       },
       {
-        path: 'bigscreen',
-        name: 'Bigscreen',
-        component: () => import('@/views/bigscreen/index.vue'),
-        meta: {
-          title: '数据大屏',
-          icon: 'Monitor',
-          roles: ['admin', 'operator', 'viewer'],
-          perm: 'bigscreen:view',
-        },
-      },
-      {
         path: 'logs',
         name: 'Logs',
         component: () => import('@/views/logs/index.vue'),
         meta: { title: '操作日志', icon: 'Document', roles: ['admin', 'operator'] },
       },
     ],
+  },
+  // 大屏独立路径(不走 AdminLayout,无侧边栏 / 顶栏 DOM)
+  {
+    path: '/bigscreen',
+    name: 'Bigscreen',
+    component: () => import('@/views/bigscreen/index.vue'),
+    meta: {
+      title: '数据大屏',
+      icon: 'Monitor',
+      roles: ['admin', 'operator', 'viewer'],
+      perm: 'bigscreen:view',
+      layout: 'standalone',
+    },
   },
   {
     path: '/404',
@@ -105,21 +107,34 @@ router.beforeEach((to, _from, next) => {
 
 export default router
 
-// 导出供侧边栏过滤菜单用
-export function getAccessibleRoutes(roles: string[]) {
-  function walk(list: RouteRecordRaw[]): any[] {
-    return list
-      .filter((r) => {
-        if (r.meta?.layout === 'blank') return false
-        if (!r.meta?.roles) return true
-        return (r.meta.roles as string[]).some((role) => roles.includes(role))
-      })
-      .map((r) => ({
-        path: r.path,
-        title: r.meta?.title,
-        icon: r.meta?.icon,
-        children: r.children ? walk(r.children) : undefined,
-      }))
+// ===== 菜单配置:扁平 + 按角色过滤 =====
+export interface MenuItem {
+  path: string
+  title: string
+  icon: string
+}
+
+export function getAccessibleRoutes(roles: string[]): MenuItem[] {
+  const result: MenuItem[] = []
+  function walk(list: RouteRecordRaw[], base = '') {
+    for (const r of list) {
+      // 排除登录/404(没有菜单项意义)
+      if (r.meta?.layout === 'blank') continue
+      // 角色过滤
+      if (r.meta?.roles && !(r.meta.roles as string[]).some((role) => roles.includes(role))) continue
+      // 是菜单项(有 title + icon)
+      if (r.meta?.title && r.meta?.icon) {
+        const fullPath = r.path.startsWith('/') ? r.path : (base + '/' + r.path).replace(/\/+/g, '/')
+        result.push({
+          path: fullPath,
+          title: r.meta.title as string,
+          icon: r.meta.icon as string,
+        })
+      }
+      // 递归子路由
+      if (r.children) walk(r.children, r.path || base)
+    }
   }
-  return walk(routes)
+  walk(routes)
+  return result
 }

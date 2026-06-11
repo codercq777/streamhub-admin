@@ -66,10 +66,9 @@ const breadcrumbs = computed(() => {
   return list
 })
 
-// 菜单(根据角色动态过滤)
+// 菜单(根据角色动态过滤,扁平数组)
 const menus = computed(() => {
-  const list = getAccessibleRoutes(user.roles as unknown as string[])
-  return (list[0]?.children || []).filter((c: any) => c.title && c.path !== '/')
+  return getAccessibleRoutes(user.roles as unknown as string[])
 })
 
 function handleLogout() {
