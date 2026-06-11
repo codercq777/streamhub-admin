@@ -3,9 +3,8 @@ import { ref } from 'vue'
 import { applyTheme, getStoredTheme, themes } from '@/utils/theme'
 
 export const useAppStore = defineStore('app', () => {
-  // 侧边栏折叠
   const sidebarCollapsed = ref(false)
-  // 暗色模式
+  // 暗色模式(独立于主题色,可与任意主题自由组合)
   const isDark = ref(false)
   // 主题名
   const themeName = ref(getStoredTheme())
@@ -16,31 +15,30 @@ export const useAppStore = defineStore('app', () => {
     sidebarCollapsed.value = !sidebarCollapsed.value
   }
 
-  function toggleDark() {
-    isDark.value = !isDark.value
+  // 同步 dark class 到 <html>(单一入口,避免 watch 副作用)
+  function syncDarkClass() {
     document.documentElement.classList.toggle('dark', isDark.value)
     localStorage.setItem('admin-dark', String(isDark.value))
+  }
+
+  function toggleDark() {
+    isDark.value = !isDark.value
+    syncDarkClass()
   }
 
   function setTheme(name: string) {
     themeName.value = name
-    const theme = applyTheme(name)
-    // 暗色主题自动开 dark class
-    isDark.value = !!theme.isDark
-    localStorage.setItem('admin-dark', String(isDark.value))
+    applyTheme(name)
+    // isDark 不动(用户手动暗色偏好继续生效)
   }
 
   function initTheme() {
-    // 主题色(可能带 isDark 自动开暗)
-    const theme = applyTheme(themeName.value)
-    // 用户手动切换的暗色偏好优先
+    // 1) 应用主题色(不动 dark class)
+    applyTheme(themeName.value)
+    // 2) 恢复用户暗色偏好 + 同步 class
     const savedDark = localStorage.getItem('admin-dark')
-    if (savedDark !== null) {
-      isDark.value = savedDark === 'true'
-    } else {
-      isDark.value = !!theme.isDark
-    }
-    document.documentElement.classList.toggle('dark', isDark.value)
+    isDark.value = savedDark === 'true'
+    syncDarkClass()
   }
 
   return {

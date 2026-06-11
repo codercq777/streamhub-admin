@@ -96,10 +96,8 @@ export function applyTheme(themeName: string) {
     `linear-gradient(135deg, ${c.primary} 0%, ${c['light-3']} 50%, ${c['light-5']} 100%)`
   )
 
-  // 暗色模式:isDark 主题自动开,普通主题尊重手动切换
-  if (theme.isDark) {
-    root.classList.add('dark')
-  }
+  // 暗色 class 由 store.setTheme / toggleDark 统一管理,applyTheme 不动
+  // (避免切浅色主题时残留 dark class)
 
   localStorage.setItem(STORAGE_KEY, themeName)
   return theme
