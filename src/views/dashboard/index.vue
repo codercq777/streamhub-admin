@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import VChart from 'vue-echarts'
 import { mockMetrics, mockGrowthData, mockPublishData, mockNotes } from '@/api/mock'
-import { compact, formatDate, relativeTime } from '@/utils/format'
+import { compact, relativeTime } from '@/utils/format'
 
 // 图表区间切换
 const chartRange = ref(1) // 1=30天 2=7天 3=24小时

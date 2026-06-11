@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, reactive, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, computed, watch } from "vue"
+import { ElMessage } from "element-plus"
 import { mockNotes } from '@/api/mock'
 import { compact, formatDate, relativeTime } from '@/utils/format'
 import { useLogStore } from '@/stores/log'
@@ -77,7 +77,7 @@ function clearSelection() {
 }
 
 // 操作
-function approve(note: NoteItem) {
+function approve(note: any) {
   const idx = allNotes.value.findIndex((n) => n.id === note.id)
   if (idx >= 0) {
     allNotes.value[idx] = { ...note, status: 'approved', rejectReason: undefined }
@@ -109,7 +109,7 @@ function batchApprove() {
   clearSelection()
 }
 
-function openReject(note: NoteItem) {
+function openReject(note: any) {
   rejectDialog.value = { visible: true, noteId: note.id, reason: '' }
 }
 
@@ -135,7 +135,7 @@ function confirmReject() {
   rejectDialog.value.visible = false
 }
 
-function showDetail(note: NoteItem) {
+function showDetail(note: any) {
   detailNote.value = note
   detailVisible.value = true
 }
@@ -266,12 +266,12 @@ function showDetail(note: NoteItem) {
           <span
             class="status-dot"
             :style="{
-              background: statusMap[row.status].color + '20',
-              color: statusMap[row.status].color,
+              background: (statusMap as any)[row.status].color + '20',
+              color: (statusMap as any)[row.status].color,
             }"
           >
-            <span class="dot" :style="{ background: statusMap[row.status].color }"></span>
-            {{ statusMap[row.status].label }}
+            <span class="dot" :style="{ background: (statusMap as any)[row.status].color }"></span>
+            {{ (statusMap as any)[row.status].label }}
           </span>
         </template>
       </el-table-column>

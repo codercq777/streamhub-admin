@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { mockUsers } from '@/api/mock'
 import { compact, formatDate } from '@/utils/format'
@@ -10,6 +10,10 @@ const allUsers = ref<UserInfo[]>([...mockUsers])
 const searchKeyword = ref('')
 const statusFilter = ref<'' | 'active' | 'banned'>('')
 const roleFilter = ref<'' | UserInfo['role']>('')
+
+// 分页
+const currentPage = ref(1)
+const pageSize = ref(10)
 
 const detailVisible = ref(false)
 const detailUser = ref<UserInfo | null>(null)
@@ -41,6 +45,17 @@ const filtered = computed(() => {
   })
 })
 
+// 分页后表格数据
+const tableData = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return filtered.value.slice(start, start + pageSize.value)
+})
+
+// 筛选变化时回到第一页
+watch([searchKeyword, statusFilter, roleFilter], () => {
+  currentPage.value = 1
+})
+
 const roleMap: Record<UserInfo['role'], { label: string; color: string }> = {
   admin: { label: '管理员', color: '#ff2442' },
   operator: { label: '运营', color: '#2b6fff' },
@@ -52,7 +67,7 @@ const statusMap: Record<UserInfo['status'], { label: string; color: string }> = 
   banned: { label: '已封禁', color: '#ff4757' },
 }
 
-function banUser(user: UserInfo) {
+function banUser(user: any) {
   ElMessageBox.confirm(
     `确认封禁用户 ${user.nickname}?封禁后将无法登录。`,
     '封禁确认',
@@ -71,7 +86,7 @@ function banUser(user: UserInfo) {
   }).catch(() => {})
 }
 
-function unbanUser(user: UserInfo) {
+function unbanUser(user: any) {
   const idx = allUsers.value.findIndex((u) => u.id === user.id)
   if (idx >= 0) {
     allUsers.value[idx] = { ...user, status: 'active' }
@@ -84,7 +99,7 @@ function unbanUser(user: UserInfo) {
   }
 }
 
-function showDetail(user: UserInfo) {
+function showDetail(user: any) {
   detailUser.value = user
   detailVisible.value = true
 }
@@ -160,7 +175,7 @@ function showDetail(user: UserInfo) {
 
     <!-- 表格 -->
     <el-table
-      :data="filtered"
+      :data="tableData"
       class="users-table"
       :header-cell-style="{ background: '#fafbfc', color: '#6b7280', fontWeight: 500 }"
       empty-text="暂无用户"
@@ -185,9 +200,9 @@ function showDetail(user: UserInfo) {
         <template #default="{ row }">
           <span
             class="role-pill"
-            :style="{ color: roleMap[row.role].color, background: roleMap[row.role].color + '15' }"
+            :style="{ color: (roleMap as any)[row.role].color, background: (roleMap as any)[row.role].color + '15' }"
           >
-            {{ roleMap[row.role].label }}
+            {{ (roleMap as any)[row.role].label }}
           </span>
         </template>
       </el-table-column>
@@ -195,10 +210,10 @@ function showDetail(user: UserInfo) {
         <template #default="{ row }">
           <span
             class="status-pill"
-            :style="{ color: statusMap[row.status].color, background: statusMap[row.status].color + '15' }"
+            :style="{ color: (statusMap as any)[row.status].color, background: (statusMap as any)[row.status].color + '15' }"
           >
-            <span class="dot" :style="{ background: statusMap[row.status].color }"></span>
-            {{ statusMap[row.status].label }}
+            <span class="dot" :style="{ background: (statusMap as any)[row.status].color }"></span>
+            {{ (statusMap as any)[row.status].label }}
           </span>
         </template>
       </el-table-column>
@@ -249,10 +264,11 @@ function showDetail(user: UserInfo) {
     <!-- 分页 -->
     <div class="pagination">
       <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
         :total="filtered.length"
-        :page-size="10"
-        :current-page="1"
-        layout="total, prev, pager, next, jumper"
+        :page-sizes="[10, 20, 50]"
+        layout="total, sizes, prev, pager, next, jumper"
         background
       />
     </div>
