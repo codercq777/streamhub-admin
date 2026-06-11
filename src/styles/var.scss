@@ -1,0 +1,65 @@
+// ===== 颜色 =====
+$primary: #ff2442;
+$primary-light: #ff6470;
+$primary-lighter: #ff9aa3;
+$primary-soft: #ffe4e8;
+$primary-gradient: linear-gradient(135deg, #ff2442 0%, #ff6b6b 50%, #c44dff 100%);
+$brand-gradient: linear-gradient(135deg, #ff2442 0%, #ff6b6b 100%);
+
+$success: #16c099;
+$success-soft: #d1fae5;
+$warning: #ff9f43;
+$warning-soft: #fef3c7;
+$danger: #ff4757;
+$danger-soft: #ffe2e5;
+$info: #6b7280;
+$info-soft: #f3f4f6;
+
+$blue: #2b6fff;
+$purple: #c44dff;
+$cyan: #06b6d4;
+
+// ===== 背景 =====
+$bg-page: #f5f7fa;
+$bg-card: #ffffff;
+$bg-hover: #f8fafc;
+$bg-active: #f0f2f5;
+
+// ===== 文字 =====
+$text-primary: #1f2937;
+$text-secondary: #6b7280;
+$text-tertiary: #9ca3af;
+$text-placeholder: #d1d5db;
+$text-white: #ffffff;
+
+// ===== 边框 =====
+$border: #e5e7eb;
+$border-light: #f3f4f6;
+$border-dark: #d1d5db;
+
+// ===== 圆角 =====
+$radius-xs: 4px;
+$radius-sm: 6px;
+$radius-md: 10px;
+$radius-lg: 16px;
+$radius-xl: 24px;
+$radius-full: 9999px;
+
+// ===== 阴影 =====
+$shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+$shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 10px 32px rgba(0, 0, 0, 0.08);
+$shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.12);
+$shadow-glow: 0 0 24px rgba(255, 36, 66, 0.25);
+
+// ===== 过渡 =====
+$transition-fast: 0.15s ease;
+$transition: 0.25s ease;
+$transition-slow: 0.4s ease;
+
+// ===== 布局 =====
+$sidebar-width: 232px;
+$sidebar-collapsed-width: 64px;
+$header-height: 60px;
+$breadcrumb-height: 44px;
