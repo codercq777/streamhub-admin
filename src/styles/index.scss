@@ -13,14 +13,14 @@
   --brand-gradient: linear-gradient(135deg, #ff2442 0%, #ff6b6b 100%);
   --primary-gradient: linear-gradient(135deg, #ff2442 0%, #ff6b6b 50%, #c44dff 100%);
 
-  // ===== Element Plus 主题色(全部绑定到品牌色 CSS 变量) =====
-  --el-color-primary: var(--brand-color);
-  --el-color-primary-light-3: var(--brand-color-light-3);
-  --el-color-primary-light-5: var(--brand-color-light-5);
-  --el-color-primary-light-7: var(--brand-color-light-7);
-  --el-color-primary-light-8: var(--brand-color-light-8);
-  --el-color-primary-light-9: var(--brand-color-light-9);
-  --el-color-primary-dark-2: #cc1d35;
+  // ===== Element Plus 主题色(全部绑定到品牌色 CSS 变量,!important 防止被 EP 内部 :where() 抢优先级) =====
+  --el-color-primary: var(--brand-color) !important;
+  --el-color-primary-light-3: var(--brand-color-light-3) !important;
+  --el-color-primary-light-5: var(--brand-color-light-5) !important;
+  --el-color-primary-light-7: var(--brand-color-light-7) !important;
+  --el-color-primary-light-8: var(--brand-color-light-8) !important;
+  --el-color-primary-light-9: var(--brand-color-light-9) !important;
+  --el-color-primary-dark-2: #cc1d35 !important;
 
   --el-color-success: #{$success};
   --el-color-warning: #{$warning};

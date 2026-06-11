@@ -67,13 +67,14 @@ export function applyTheme(themeName: string) {
   const root = document.documentElement
 
   // Element Plus 主题色
-  root.style.setProperty('--el-color-primary', c.primary)
-  root.style.setProperty('--el-color-primary-light-3', c['light-3'])
-  root.style.setProperty('--el-color-primary-light-5', c['light-5'])
-  root.style.setProperty('--el-color-primary-light-7', c['light-7'])
-  root.style.setProperty('--el-color-primary-light-8', c['light-8'])
-  root.style.setProperty('--el-color-primary-light-9', c['light-9'])
-  root.style.setProperty('--el-color-primary-dark-2', c['dark-2'])
+  // 用 !important 防止 element-plus 内部 :where() 包裹的规则抢优先级
+  root.style.setProperty('--el-color-primary', c.primary, 'important')
+  root.style.setProperty('--el-color-primary-light-3', c['light-3'], 'important')
+  root.style.setProperty('--el-color-primary-light-5', c['light-5'], 'important')
+  root.style.setProperty('--el-color-primary-light-7', c['light-7'], 'important')
+  root.style.setProperty('--el-color-primary-light-8', c['light-8'], 'important')
+  root.style.setProperty('--el-color-primary-light-9', c['light-9'], 'important')
+  root.style.setProperty('--el-color-primary-dark-2', c['dark-2'], 'important')
 
   // 品牌色(SCSS 引用源)
   root.style.setProperty('--brand-color', c.primary)
