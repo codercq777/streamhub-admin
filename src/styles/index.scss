@@ -13,6 +13,21 @@
   --brand-gradient: linear-gradient(135deg, #ff2442 0%, #ff6b6b 100%);
   --primary-gradient: linear-gradient(135deg, #ff2442 0%, #ff6b6b 50%, #c44dff 100%);
 
+  // ===== 主题中性色(亮/暗模式双值) =====
+  --bg-page: #f5f7fa;
+  --bg-card: #ffffff;
+  --bg-hover: #f8fafc;
+  --bg-active: #f0f2f5;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --text-placeholder: #d1d5db;
+  --border: #e5e7eb;
+  --border-light: #f3f4f6;
+  --border-dark: #d1d5db;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+
   // ===== Element Plus 主题色(全部绑定到品牌色 CSS 变量,!important 防止被 EP 内部 :where() 抢优先级) =====
   --el-color-primary: var(--brand-color) !important;
   --el-color-primary-light-3: var(--brand-color-light-3) !important;
@@ -137,6 +152,7 @@ a {
 
 // ===== 暗色模式 =====
 html.dark {
+  // Element Plus 内部色
   --el-bg-color: #0f172a;
   --el-bg-color-page: #0b1220;
   --el-bg-color-overlay: #1e293b;
@@ -154,6 +170,21 @@ html.dark {
   --el-fill-color-lighter: #0f172a;
   --el-mask-color: rgba(0, 0, 0, 0.6);
 
+  // 自定义中性色 — 一改全改
+  --bg-page: #0b1220;
+  --bg-card: #131c2e;
+  --bg-hover: #1e293b;
+  --bg-active: #1a2236;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --text-placeholder: #475569;
+  --border: #334155;
+  --border-light: #1e293b;
+  --border-dark: #475569;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+
   body {
     background: #0b1220;
     color: #e2e8f0;
@@ -164,6 +195,62 @@ html.dark {
     &:hover {
       background: rgba(255, 255, 255, 0.25);
     }
+  }
+
+  // 全局覆盖:页面级卡片/容器
+  .card,
+  .stat-card,
+  .metric-card,
+  .ts-card,
+  .ps-block,
+  .stat-block,
+  .quick-card,
+  .date-block,
+  .form-bottom,
+  .filter-select,
+  .profile-hero,
+  .profile-info,
+  .stat-list,
+  .pagination,
+  .toolbar,
+  .empty-wrap,
+  .timeline-card,
+  .nf-card,
+  .welcome,
+  .pending-item,
+  .status-list,
+  .bs-panel,
+  .bs-metrics,
+  .login-card {
+    background: var(--bg-card) !important;
+    border-color: var(--border-light) !important;
+  }
+
+  .welcome {
+    background: linear-gradient(135deg, var(--bg-card) 0%, rgba(196, 77, 255, 0.08) 100%) !important;
+  }
+
+  // 渐变 / 玻璃态文字
+  .ts-bar,
+  .status-bar {
+    background: var(--bg-active) !important;
+  }
+
+  // login 页输入框 wrapper
+  .el-input__wrapper {
+    background: #1e293b !important;
+    box-shadow: 0 0 0 1px var(--border) inset !important;
+    &.is-focus {
+      box-shadow: 0 0 0 2px var(--brand-color) inset !important;
+      background: #0f172a !important;
+    }
+  }
+
+  // 表格头(有些用了 inline 颜色)
+  .el-table th.el-table__cell {
+    background: var(--bg-active) !important;
+    color: var(--text-secondary) !important;
+    border-bottom-color: var(--border) !important;
   }
 }
 

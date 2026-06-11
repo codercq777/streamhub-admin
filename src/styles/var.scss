@@ -20,23 +20,23 @@ $blue: #2b6fff;
 $purple: #c44dff;
 $cyan: #06b6d4;
 
-// ===== 背景 =====
-$bg-page: #f5f7fa;
-$bg-card: #ffffff;
-$bg-hover: #f8fafc;
-$bg-active: #f0f2f5;
+// ===== 背景(用 CSS 变量,响应暗色模式) =====
+$bg-page: var(--bg-page, #f5f7fa);
+$bg-card: var(--bg-card, #ffffff);
+$bg-hover: var(--bg-hover, #f8fafc);
+$bg-active: var(--bg-active, #f0f2f5);
 
-// ===== 文字 =====
-$text-primary: #1f2937;
-$text-secondary: #6b7280;
-$text-tertiary: #9ca3af;
-$text-placeholder: #d1d5db;
+// ===== 文字(用 CSS 变量,响应暗色模式) =====
+$text-primary: var(--text-primary, #1f2937);
+$text-secondary: var(--text-secondary, #6b7280);
+$text-tertiary: var(--text-tertiary, #9ca3af);
+$text-placeholder: var(--text-placeholder, #d1d5db);
 $text-white: #ffffff;
 
-// ===== 边框 =====
-$border: #e5e7eb;
-$border-light: #f3f4f6;
-$border-dark: #d1d5db;
+// ===== 边框(用 CSS 变量,响应暗色模式) =====
+$border: var(--border, #e5e7eb);
+$border-light: var(--border-light, #f3f4f6);
+$border-dark: var(--border-dark, #d1d5db);
 
 // ===== 圆角 =====
 $radius-xs: 4px;
