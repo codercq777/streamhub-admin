@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import type { LoginForm } from '@/types'
 
@@ -81,6 +81,29 @@ const demoAccounts: DemoAccount[] = [
 function fillDemo(acct: DemoAccount) {
   form.username = acct.username
   form.password = acct.password
+}
+
+function onForgot() {
+  ElMessageBox.alert('请联系系统管理员重置密码,或在登录页使用体验账号。', '忘记密码', {
+    confirmButtonText: '我知道了',
+    type: 'info',
+  })
+}
+
+function onAgreement() {
+  ElMessageBox.alert(
+    'StreamHub Admin 是用于演示的作品集项目,所有功能均为 mock 数据。\n使用本系统即代表同意仅用于学习交流,不用于任何商业用途。',
+    '服务协议',
+    { confirmButtonText: '同意', type: 'info' }
+  )
+}
+
+function onPrivacy() {
+  ElMessageBox.alert(
+    '本系统不收集任何真实用户信息,所有展示数据均为模拟生成。\n登录态、主题等偏好仅保存在本地浏览器,不向任何服务器上报。',
+    '隐私政策',
+    { confirmButtonText: '知道了', type: 'info' }
+  )
 }
 
 onMounted(() => {
@@ -185,7 +208,7 @@ onMounted(() => {
 
           <div class="form-row">
             <el-checkbox v-model="form.remember">记住密码</el-checkbox>
-            <a class="forgot">忘记密码?</a>
+            <a class="forgot" @click="onForgot">忘记密码?</a>
           </div>
 
           <el-button
@@ -216,9 +239,9 @@ onMounted(() => {
 
         <div class="form-bottom">
           <span>登录即代表同意</span>
-          <a>《服务协议》</a>
+          <a @click="onAgreement">《服务协议》</a>
           <span>与</span>
-          <a>《隐私政策》</a>
+          <a @click="onPrivacy">《隐私政策》</a>
         </div>
       </div>
     </div>

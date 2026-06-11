@@ -18,6 +18,63 @@ const pageSize = ref(10)
 const detailVisible = ref(false)
 const detailUser = ref<UserInfo | null>(null)
 
+// 新建用户
+const createVisible = ref(false)
+const createFormRef = ref()
+const createForm = reactive({
+  username: '',
+  nickname: '',
+  email: '',
+  role: 'viewer' as UserInfo['role'],
+})
+const createRules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 20, message: '3-20 个字符', trigger: 'blur' },
+  ],
+  nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
+  email: [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
+    { type: 'email', message: '邮箱格式不正确', trigger: 'blur' },
+  ],
+}
+
+function openCreate() {
+  createForm.username = ''
+  createForm.nickname = ''
+  createForm.email = ''
+  createForm.role = 'viewer'
+  createVisible.value = true
+}
+
+function submitCreate() {
+  if (!createFormRef.value) return
+  createFormRef.value.validate((valid: boolean) => {
+    if (!valid) return
+    const newUser: UserInfo = {
+      id: 20000 + allUsers.value.length,
+      username: createForm.username,
+      nickname: createForm.nickname,
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(createForm.username)}`,
+      role: createForm.role,
+      email: createForm.email,
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      notesCount: 0,
+      followersCount: 0,
+    }
+    allUsers.value.unshift(newUser)
+    ElMessage.success(`已创建用户:${newUser.nickname}`)
+    logStore.addLog({
+      type: 'user_create',
+      action: '新建用户',
+      target: `user_${newUser.id} @${newUser.nickname} (${newUser.role})`,
+    })
+    createVisible.value = false
+    currentPage.value = 1
+  })
+}
+
 const logStore = useLogStore()
 
 const stats = computed(() => ({
@@ -168,7 +225,7 @@ function showDetail(user: any) {
         <el-option label="普通用户" value="viewer" />
       </el-select>
       <div class="toolbar-spacer"></div>
-      <el-button v-permission="'user:create'" type="primary">
+      <el-button v-permission="'user:create'" type="primary" @click="openCreate">
         <el-icon><Plus /></el-icon>新建用户
       </el-button>
     </div>
@@ -354,6 +411,61 @@ function showDetail(user: any) {
         </div>
       </template>
     </el-drawer>
+
+    <!-- 新建用户弹窗 -->
+    <el-dialog
+      v-model="createVisible"
+      title="新建用户"
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <el-form
+        ref="createFormRef"
+        :model="createForm"
+        :rules="createRules"
+        label-width="80px"
+        size="large"
+      >
+        <el-form-item label="用户名" prop="username">
+          <el-input
+            v-model="createForm.username"
+            placeholder="3-20 个字符"
+            :prefix-icon="'User'"
+          />
+        </el-form-item>
+        <el-form-item label="昵称" prop="nickname">
+          <el-input
+            v-model="createForm.nickname"
+            placeholder="用户昵称"
+            :prefix-icon="'UserFilled'"
+          />
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input
+            v-model="createForm.email"
+            placeholder="example@streamhub.io"
+            :prefix-icon="'Message'"
+          />
+        </el-form-item>
+        <el-form-item label="角色" prop="role">
+          <el-radio-group v-model="createForm.role">
+            <el-radio-button value="admin">管理员</el-radio-button>
+            <el-radio-button value="operator">运营</el-radio-button>
+            <el-radio-button value="viewer">普通</el-radio-button>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item>
+          <el-text size="small" type="info">
+            <el-icon><InfoFilled /></el-icon>
+            新用户默认状态为「正常」,创建后可在详情中封禁/解封
+          </el-text>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="createVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitCreate">确认创建</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 

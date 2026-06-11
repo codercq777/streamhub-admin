@@ -1,15 +1,48 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
 import { getAccessibleRoutes } from '@/router'
-import { ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 const route = useRoute()
 const app = useAppStore()
 const user = useUserStore()
+
+// 个人中心
+const profileVisible = ref(false)
+function openProfile() {
+  profileVisible.value = true
+}
+
+// 系统设置
+const settingsVisible = ref(false)
+const settingsForm = reactive({
+  siteName: 'StreamHub Admin',
+  siteDesc: 'StreamHub 小程序内容审核与运营后台',
+  icp: '京 ICP 备 XXXXXXXX 号 - 1',
+  enableNotify: true,
+  enableAudit: true,
+  sessionTimeout: 60,
+})
+function openSettings() {
+  settingsVisible.value = true
+}
+function saveSettings() {
+  ElMessage.success('设置已保存(mock)')
+  settingsVisible.value = false
+}
+function resetSettings() {
+  settingsForm.siteName = 'StreamHub Admin'
+  settingsForm.siteDesc = 'StreamHub 小程序内容审核与运营后台'
+  settingsForm.icp = ''
+  settingsForm.enableNotify = true
+  settingsForm.enableAudit = true
+  settingsForm.sessionTimeout = 60
+  ElMessage.info('已重置为默认值')
+}
 
 onMounted(() => {
   app.initTheme()
@@ -192,10 +225,10 @@ function toggleFullscreen() {
             </div>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item>
+                <el-dropdown-item @click="openProfile">
                   <el-icon><User /></el-icon>个人中心
                 </el-dropdown-item>
-                <el-dropdown-item>
+                <el-dropdown-item @click="openSettings">
                   <el-icon><Setting /></el-icon>系统设置
                 </el-dropdown-item>
                 <el-dropdown-item divided @click="handleLogout">
@@ -216,6 +249,97 @@ function toggleFullscreen() {
         </router-view>
       </el-main>
     </el-container>
+
+    <!-- 个人中心 -->
+    <el-drawer v-model="profileVisible" title="个人中心" size="400px">
+      <div class="profile-wrap">
+        <div class="profile-hero">
+          <el-avatar :src="user.avatar" :size="80" />
+          <div class="profile-name">{{ user.username || 'admin' }}</div>
+          <div class="profile-role">
+            <el-tag
+              v-for="r in user.roles"
+              :key="r"
+              :type="r === 'admin' ? 'danger' : r === 'operator' ? 'primary' : 'info'"
+              effect="dark"
+              size="small"
+            >
+              {{ user.roleLabel[r] }}
+            </el-tag>
+          </div>
+        </div>
+        <div class="profile-info">
+          <div class="info-row">
+            <span class="info-key"><el-icon><User /></el-icon>账号</span>
+            <span class="info-val">{{ user.username || 'admin' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key"><el-icon><Message /></el-icon>邮箱</span>
+            <span class="info-val">{{ user.username }}@streamhub.io</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key"><el-icon><Key /></el-icon>Token</span>
+            <span class="info-val num">mock-token-{{ Date.now().toString().slice(-6) }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-key"><el-icon><Position /></el-icon>最近 IP</span>
+            <span class="info-val num">192.168.1.10</span>
+          </div>
+        </div>
+        <el-divider />
+        <div class="profile-stats">
+          <div class="ps-block">
+            <div class="ps-value num">128</div>
+            <div class="ps-label">操作数</div>
+          </div>
+          <div class="ps-block">
+            <div class="ps-value num">42</div>
+            <div class="ps-label">审核通过</div>
+          </div>
+          <div class="ps-block">
+            <div class="ps-value num">3</div>
+            <div class="ps-label">封禁</div>
+          </div>
+        </div>
+      </div>
+    </el-drawer>
+
+    <!-- 系统设置 -->
+    <el-drawer v-model="settingsVisible" title="系统设置" size="480px">
+      <el-form :model="settingsForm" label-width="100px" size="default">
+        <el-divider content-position="left">站点信息</el-divider>
+        <el-form-item label="站点名称">
+          <el-input v-model="settingsForm.siteName" />
+        </el-form-item>
+        <el-form-item label="站点描述">
+          <el-input v-model="settingsForm.siteDesc" type="textarea" :rows="2" />
+        </el-form-item>
+        <el-form-item label="ICP 备案">
+          <el-input v-model="settingsForm.icp" placeholder="选填" />
+        </el-form-item>
+
+        <el-divider content-position="left">功能开关</el-divider>
+        <el-form-item label="消息通知">
+          <el-switch v-model="settingsForm.enableNotify" />
+        </el-form-item>
+        <el-form-item label="内容审核">
+          <el-switch v-model="settingsForm.enableAudit" />
+        </el-form-item>
+        <el-form-item label="会话超时">
+          <el-input-number
+            v-model="settingsForm.sessionTimeout"
+            :min="15"
+            :max="480"
+            :step="15"
+          />
+          <span class="form-hint">分钟</span>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="resetSettings">重置</el-button>
+        <el-button type="primary" @click="saveSettings">保存设置</el-button>
+      </template>
+    </el-drawer>
   </el-container>
 </template>
 
@@ -495,5 +619,84 @@ html.dark .user-name {
 .slide-leave-to {
   opacity: 0;
   transform: translateY(-4px);
+}
+
+// ===== 个人中心 =====
+.profile-wrap {
+  display: flex;
+  flex-direction: column;
+}
+.profile-hero {
+  text-align: center;
+  padding: 20px 0 24px;
+  border-bottom: 1px solid $border-light;
+}
+html.dark .profile-hero { border-bottom-color: #1e293b; }
+.profile-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: $text-primary;
+  margin-top: 12px;
+}
+html.dark .profile-name { color: #e2e8f0; }
+.profile-role {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 10px;
+}
+.profile-info {
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+.info-key {
+  color: $text-secondary;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  .el-icon { font-size: 14px; }
+}
+.info-val {
+  color: $text-primary;
+  font-weight: 500;
+}
+html.dark .info-val { color: #e2e8f0; }
+.profile-stats {
+  display: flex;
+  gap: 12px;
+}
+.ps-block {
+  flex: 1;
+  text-align: center;
+  padding: 14px 8px;
+  background: $bg-page;
+  border-radius: 10px;
+}
+html.dark .ps-block { background: #1e293b; }
+.ps-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: $text-primary;
+}
+.ps-label {
+  font-size: 12px;
+  color: $text-secondary;
+  margin-top: 4px;
+}
+html.dark .ps-value { color: #e2e8f0; }
+
+// ===== 系统设置 =====
+.form-hint {
+  margin-left: 8px;
+  font-size: 12px;
+  color: $text-tertiary;
 }
 </style>

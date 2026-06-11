@@ -265,7 +265,7 @@ const systemStatus = ref([
                   <span>{{ relativeTime(n.createdAt) }}</span>
                 </div>
               </div>
-              <el-button size="small" type="primary" plain>审核</el-button>
+              <el-button size="small" type="primary" plain @click="$router.push('/audit')">审核</el-button>
             </div>
           </div>
         </div>
