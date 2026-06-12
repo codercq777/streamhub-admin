@@ -102,7 +102,7 @@ npm run test:watch  # 监听
 - 主题切换 8 主题 × 暗色模式各种组合(11 case)
 - ECharts 6 种图表注册完整性(3 case)
 
-## 📜 设计要点(面试问答可参考)
+## 📜 设计要点
 
 ### 主题切换
 - `:root` 暴露 `--brand-color` `--bg-card` `--text-primary` 等 CSS 变量
