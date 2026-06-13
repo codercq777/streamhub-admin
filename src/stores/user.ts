@@ -7,10 +7,10 @@ export const useUserStore = defineStore('user', () => {
   const token = ref<string>(localStorage.getItem('admin-token') || '')
   const username = ref<string>(localStorage.getItem('admin-username') || '')
   const avatar = ref<string>(
-    localStorage.getItem('admin-avatar') || 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin'
+    localStorage.getItem('admin-avatar') || 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
   )
   const roles = ref<Role[]>(
-    (JSON.parse(localStorage.getItem('admin-roles') || '["admin"]') as Role[])
+    (JSON.parse(localStorage.getItem('admin-roles') || '["admin"]') as Role[]),
   )
 
   const isLoggedIn = computed(() => !!token.value)

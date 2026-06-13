@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue"
-import { ElMessage } from "element-plus"
+import { ref, computed, watch } from 'vue'
+import { ElMessage } from 'element-plus'
 import { mockNotes } from '@/api/mock'
 import { compact, formatDate, relativeTime } from '@/utils/format'
 import { useLogStore } from '@/stores/log'
@@ -29,7 +29,7 @@ const statusMap = {
 }
 
 const categories = computed(() =>
-  Array.from(new Set(allNotes.value.map((n) => n.category)))
+  Array.from(new Set(allNotes.value.map((n) => n.category))),
 )
 
 // 过滤
@@ -77,7 +77,7 @@ function clearSelection() {
 }
 
 // 操作
-function approve(note: any) {
+function approve(note: NoteItem) {
   const idx = allNotes.value.findIndex((n) => n.id === note.id)
   if (idx >= 0) {
     allNotes.value[idx] = { ...note, status: 'approved', rejectReason: undefined }
@@ -98,7 +98,7 @@ function batchApprove() {
   allNotes.value = allNotes.value.map((n) =>
     selected.value.includes(n.id)
       ? { ...n, status: 'approved' as const, rejectReason: undefined }
-      : n
+      : n,
   )
   ElMessage.success(`已批量通过 ${selected.value.length} 条`)
   logStore.addLog({
@@ -109,7 +109,7 @@ function batchApprove() {
   clearSelection()
 }
 
-function openReject(note: any) {
+function openReject(note: NoteItem) {
   rejectDialog.value = { visible: true, noteId: note.id, reason: '' }
 }
 
@@ -122,7 +122,7 @@ function confirmReject() {
   allNotes.value = allNotes.value.map((n) =>
     n.id === rejectDialog.value.noteId
       ? { ...n, status: 'rejected' as const, rejectReason: rejectDialog.value.reason }
-      : n
+      : n,
   )
   ElMessage.success('已拒绝')
   if (note) {
@@ -135,7 +135,7 @@ function confirmReject() {
   rejectDialog.value.visible = false
 }
 
-function showDetail(note: any) {
+function showDetail(note: NoteItem) {
   detailNote.value = note
   detailVisible.value = true
 }
@@ -182,7 +182,7 @@ function showDetail(note: any) {
           :value="c"
         />
       </el-select>
-      <div class="toolbar-spacer"></div>
+      <div class="toolbar-spacer" />
       <el-button
         v-permission="'audit:batch'"
         type="primary"
@@ -197,15 +197,24 @@ function showDetail(note: any) {
     <!-- 列表 -->
     <el-table
       :data="tableData"
-      @selection-change="onSelect"
       class="audit-table"
       :header-cell-style="{ background: '#fafbfc', color: '#6b7280', fontWeight: 500 }"
       empty-text="暂无内容"
+      @selection-change="onSelect"
     >
-      <el-table-column type="selection" width="50" />
-      <el-table-column label="内容" min-width="380">
+      <el-table-column
+        type="selection"
+        width="50"
+      />
+      <el-table-column
+        label="内容"
+        min-width="380"
+      >
         <template #default="{ row }">
-          <div class="content-cell" @click="showDetail(row)">
+          <div
+            class="content-cell"
+            @click="showDetail(row as NoteItem)"
+          >
             <el-image
               :src="row.cover"
               :preview-src-list="[row.cover]"
@@ -215,8 +224,12 @@ function showDetail(note: any) {
               preview-teleported
             />
             <div class="content-info">
-              <div class="content-title">{{ row.title }}</div>
-              <div class="content-excerpt">{{ row.content }}</div>
+              <div class="content-title">
+                {{ row.title }}
+              </div>
+              <div class="content-excerpt">
+                {{ row.content }}
+              </div>
               <div class="content-tags">
                 <el-tag
                   v-for="t in row.tags"
@@ -232,20 +245,38 @@ function showDetail(note: any) {
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="作者" width="160">
+      <el-table-column
+        label="作者"
+        width="160"
+      >
         <template #default="{ row }">
           <div class="author-cell">
-            <el-avatar :src="row.authorAvatar" :size="32" />
+            <el-avatar
+              :src="row.authorAvatar"
+              :size="32"
+            />
             <span class="author-name">{{ row.authorName }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="分类" width="90">
+      <el-table-column
+        label="分类"
+        width="90"
+      >
         <template #default="{ row }">
-          <el-tag size="small" effect="plain">{{ row.category }}</el-tag>
+          <el-tag
+            size="small"
+            effect="plain"
+          >
+            {{ row.category }}
+          </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="互动" width="120" align="center">
+      <el-table-column
+        label="互动"
+        width="120"
+        align="center"
+      >
         <template #default="{ row }">
           <div class="stat-pair">
             <span><el-icon><Star /></el-icon> {{ compact(row.likes) }}</span>
@@ -253,15 +284,24 @@ function showDetail(note: any) {
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="提交时间" width="140">
+      <el-table-column
+        label="提交时间"
+        width="140"
+      >
         <template #default="{ row }">
           <div class="time-cell">
             <div>{{ formatDate(row.createdAt, false) }}</div>
-            <div class="time-rel">{{ relativeTime(row.createdAt) }}</div>
+            <div class="time-rel">
+              {{ relativeTime(row.createdAt) }}
+            </div>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="状态" width="100" align="center">
+      <el-table-column
+        label="状态"
+        width="100"
+        align="center"
+      >
         <template #default="{ row }">
           <span
             class="status-dot"
@@ -270,22 +310,46 @@ function showDetail(note: any) {
               color: (statusMap as any)[row.status].color,
             }"
           >
-            <span class="dot" :style="{ background: (statusMap as any)[row.status].color }"></span>
+            <span
+              class="dot"
+              :style="{ background: (statusMap as any)[row.status].color }"
+            />
             {{ (statusMap as any)[row.status].label }}
           </span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="180" fixed="right" align="center">
+      <el-table-column
+        label="操作"
+        width="180"
+        fixed="right"
+        align="center"
+      >
         <template #default="{ row }">
           <template v-if="row.status === 'pending'">
-            <el-button size="small" type="success" plain @click="approve(row)">
+            <el-button
+              size="small"
+              type="success"
+              plain
+              @click="approve(row as NoteItem)"
+            >
               通过
             </el-button>
-            <el-button size="small" type="danger" plain @click="openReject(row)">
+            <el-button
+              size="small"
+              type="danger"
+              plain
+              @click="openReject(row as NoteItem)"
+            >
               拒绝
             </el-button>
           </template>
-          <el-button v-else size="small" text type="primary" @click="showDetail(row)">
+          <el-button
+            v-else
+            size="small"
+            text
+            type="primary"
+            @click="showDetail(row as NoteItem)"
+          >
             查看详情
           </el-button>
         </template>
@@ -318,14 +382,23 @@ function showDetail(note: any) {
             fit="cover"
             class="detail-cover"
           />
-          <h2 class="detail-title">{{ detailNote.title }}</h2>
+          <h2 class="detail-title">
+            {{ detailNote.title }}
+          </h2>
           <div class="detail-author">
-            <el-avatar :src="detailNote.authorAvatar" :size="40" />
+            <el-avatar
+              :src="detailNote.authorAvatar"
+              :size="40"
+            />
             <div>
-              <div class="detail-author-name">{{ detailNote.authorName }}</div>
-              <div class="detail-author-time">{{ formatDate(detailNote.createdAt) }}</div>
+              <div class="detail-author-name">
+                {{ detailNote.authorName }}
+              </div>
+              <div class="detail-author-time">
+                {{ formatDate(detailNote.createdAt) }}
+              </div>
             </div>
-            <div class="detail-status-spacer"></div>
+            <div class="detail-status-spacer" />
             <span
               class="status-dot"
               :style="{
@@ -336,7 +409,9 @@ function showDetail(note: any) {
               {{ statusMap[detailNote.status].label }}
             </span>
           </div>
-          <div class="detail-body">{{ detailNote.content }}</div>
+          <div class="detail-body">
+            {{ detailNote.content }}
+          </div>
           <div class="detail-tags">
             <el-tag
               v-for="t in detailNote.tags"
@@ -344,9 +419,14 @@ function showDetail(note: any) {
               size="small"
               effect="plain"
               type="info"
-            >#{{ t }}</el-tag>
+            >
+              #{{ t }}
+            </el-tag>
           </div>
-          <div v-if="detailNote.rejectReason" class="detail-reject">
+          <div
+            v-if="detailNote.rejectReason"
+            class="detail-reject"
+          >
             <el-icon><WarningFilled /></el-icon>
             <span>拒绝原因:{{ detailNote.rejectReason }}</span>
           </div>
@@ -379,7 +459,10 @@ function showDetail(note: any) {
       width="480px"
     >
       <el-form label-position="top">
-        <el-form-item label="拒绝原因" required>
+        <el-form-item
+          label="拒绝原因"
+          required
+        >
           <el-input
             v-model="rejectDialog.reason"
             type="textarea"
@@ -395,13 +478,22 @@ function showDetail(note: any) {
               class="quick-reason"
               :effect="rejectDialog.reason === r ? 'dark' : 'plain'"
               @click="rejectDialog.reason = r"
-            >{{ r }}</el-tag>
+            >
+              {{ r }}
+            </el-tag>
           </div>
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="rejectDialog.visible = false">取消</el-button>
-        <el-button type="primary" @click="confirmReject">确认拒绝</el-button>
+        <el-button @click="rejectDialog.visible = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          @click="confirmReject"
+        >
+          确认拒绝
+        </el-button>
       </template>
     </el-dialog>
   </div>

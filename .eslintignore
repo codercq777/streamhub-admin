@@ -1,0 +1,8 @@
+dist
+node_modules
+coverage
+*.min.js
+public
+auto-imports.d.ts
+.env.local
+.env.*.local

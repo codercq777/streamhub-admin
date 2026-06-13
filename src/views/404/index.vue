@@ -6,10 +6,15 @@ const router = useRouter()
 <template>
   <div class="not-found">
     <div class="nf-card">
-      <div class="nf-code brand-text">404</div>
+      <div class="nf-code brand-text">
+        404
+      </div>
       <h2>页面走丢了</h2>
       <p>您访问的页面不存在或已被移除。</p>
-      <el-button type="primary" @click="router.push('/')">
+      <el-button
+        type="primary"
+        @click="router.push('/')"
+      >
         <el-icon><Back /></el-icon>回到首页
       </el-button>
     </div>

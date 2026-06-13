@@ -119,15 +119,28 @@ onBeforeUnmount(() => {
 <template>
   <el-container class="admin-layout">
     <!-- ===== 侧边栏 ===== -->
-    <el-aside :width="app.sidebarCollapsed ? '64px' : '232px'" class="admin-aside">
-      <div class="brand" :class="{ collapsed: app.sidebarCollapsed }">
+    <el-aside
+      :width="app.sidebarCollapsed ? '64px' : '232px'"
+      class="admin-aside"
+    >
+      <div
+        class="brand"
+        :class="{ collapsed: app.sidebarCollapsed }"
+      >
         <div class="brand-logo">
           <span class="logo-glyph">S</span>
         </div>
         <transition name="brand-fade">
-          <div v-show="!app.sidebarCollapsed" class="brand-text-wrap">
-            <div class="brand-name brand-text">StreamHub</div>
-            <div class="brand-sub">Admin Console</div>
+          <div
+            v-show="!app.sidebarCollapsed"
+            class="brand-text-wrap"
+          >
+            <div class="brand-name brand-text">
+              StreamHub
+            </div>
+            <div class="brand-sub">
+              Admin Console
+            </div>
           </div>
         </transition>
       </div>
@@ -141,13 +154,22 @@ onBeforeUnmount(() => {
         active-text-color="#ffffff"
         router
       >
-        <el-menu-item v-for="m in menus" :key="m.path" :index="m.path">
+        <el-menu-item
+          v-for="m in menus"
+          :key="m.path"
+          :index="m.path"
+        >
           <el-icon><component :is="m.icon" /></el-icon>
-          <template #title>{{ m.title }}</template>
+          <template #title>
+            {{ m.title }}
+          </template>
         </el-menu-item>
       </el-menu>
 
-      <div class="aside-footer" v-show="!app.sidebarCollapsed">
+      <div
+        v-show="!app.sidebarCollapsed"
+        class="aside-footer"
+      >
         <div class="aside-footer-tip">
           <el-icon><MagicStick /></el-icon>
           <span>需要帮助?</span>
@@ -158,7 +180,10 @@ onBeforeUnmount(() => {
     <!-- ===== 主区域 ===== -->
     <el-container class="admin-main">
       <!-- 顶栏 -->
-      <el-header class="admin-header" height="60px">
+      <el-header
+        class="admin-header"
+        height="60px"
+      >
         <div class="header-left">
           <el-button
             text
@@ -171,7 +196,10 @@ onBeforeUnmount(() => {
             </el-icon>
           </el-button>
 
-          <el-breadcrumb separator="/" class="breadcrumb">
+          <el-breadcrumb
+            separator="/"
+            class="breadcrumb"
+          >
             <el-breadcrumb-item
               v-for="(b, i) in breadcrumbs"
               :key="b.path"
@@ -184,8 +212,14 @@ onBeforeUnmount(() => {
 
         <div class="header-right">
           <el-tooltip content="刷新页面">
-            <el-button text class="header-icon-btn" @click="router.go(0)">
-              <el-icon size="18"><Refresh /></el-icon>
+            <el-button
+              text
+              class="header-icon-btn"
+              @click="router.go(0)"
+            >
+              <el-icon size="18">
+                <Refresh />
+              </el-icon>
             </el-button>
           </el-tooltip>
 
@@ -197,13 +231,21 @@ onBeforeUnmount(() => {
             popper-class="theme-popover"
           >
             <template #reference>
-              <el-button text class="header-icon-btn" title="主题">
-                <el-icon size="18"><Brush /></el-icon>
+              <el-button
+                text
+                class="header-icon-btn"
+                title="主题"
+              >
+                <el-icon size="18">
+                  <Brush />
+                </el-icon>
               </el-button>
             </template>
 
             <div class="theme-panel">
-              <div class="tp-title">主题色</div>
+              <div class="tp-title">
+                主题色
+              </div>
               <div class="tp-grid">
                 <div
                   v-for="t in app.themes"
@@ -213,24 +255,38 @@ onBeforeUnmount(() => {
                   :style="{ background: t.primary }"
                   @click="app.setTheme(t.name)"
                 >
-                  <el-icon v-if="app.themeName === t.name" size="14" color="#fff"><Check /></el-icon>
-                  <span v-if="t.isDark" class="tp-moon"><el-icon size="10" color="#fff"><Moon /></el-icon></span>
+                  <el-icon
+                    v-if="app.themeName === t.name"
+                    size="14"
+                    color="#fff"
+                  >
+                    <Check />
+                  </el-icon>
+                  <span
+                    v-if="t.isDark"
+                    class="tp-moon"
+                  ><el-icon
+                    size="10"
+                    color="#fff"
+                  ><Moon /></el-icon></span>
                 </div>
               </div>
               <div class="tp-labels">
                 <span class="tp-l-hint">浅</span>
                 <span class="tp-l-hint tp-l-hint-dark">暗</span>
               </div>
-              <div class="tp-divider"></div>
+              <div class="tp-divider" />
               <div class="tp-row">
                 <span class="tp-row-label">暗色模式</span>
                 <el-switch
                   :model-value="app.isDark"
-                  @change="app.toggleDark()"
                   size="small"
+                  @change="app.toggleDark()"
                 />
               </div>
-              <div class="tp-hint">提示:暗夜紫 / 炭黑主题自带暗色模式</div>
+              <div class="tp-hint">
+                提示:暗夜紫 / 炭黑主题自带暗色模式
+              </div>
             </div>
           </el-popover>
 
@@ -249,7 +305,10 @@ onBeforeUnmount(() => {
           </el-tooltip>
           <el-dropdown trigger="click">
             <div class="user-block">
-              <el-avatar :src="user.avatar" :size="32" />
+              <el-avatar
+                :src="user.avatar"
+                :size="32"
+              />
               <span class="user-name">{{ user.username || 'admin' }}</span>
               <el-icon><ArrowDown /></el-icon>
             </div>
@@ -261,7 +320,10 @@ onBeforeUnmount(() => {
                 <el-dropdown-item @click="openSettings">
                   <el-icon><Setting /></el-icon>系统设置
                 </el-dropdown-item>
-                <el-dropdown-item divided @click="handleLogout">
+                <el-dropdown-item
+                  divided
+                  @click="handleLogout"
+                >
                   <el-icon><SwitchButton /></el-icon>退出登录
                 </el-dropdown-item>
               </el-dropdown-menu>
@@ -271,21 +333,39 @@ onBeforeUnmount(() => {
       </el-header>
 
       <!-- 内容 -->
-      <el-main ref="mainEl" class="admin-content">
+      <el-main
+        ref="mainEl"
+        class="admin-content"
+      >
         <router-view v-slot="{ Component, route: r }">
-          <transition name="slide" mode="out-in">
-            <component :is="Component" :key="r.fullPath" />
+          <transition
+            name="slide"
+            mode="out-in"
+          >
+            <component
+              :is="Component"
+              :key="r.fullPath"
+            />
           </transition>
         </router-view>
       </el-main>
     </el-container>
 
     <!-- 个人中心 -->
-    <el-drawer v-model="profileVisible" title="个人中心" size="400px">
+    <el-drawer
+      v-model="profileVisible"
+      title="个人中心"
+      size="400px"
+    >
       <div class="profile-wrap">
         <div class="profile-hero">
-          <el-avatar :src="user.avatar" :size="80" />
-          <div class="profile-name">{{ user.username || 'admin' }}</div>
+          <el-avatar
+            :src="user.avatar"
+            :size="80"
+          />
+          <div class="profile-name">
+            {{ user.username || 'admin' }}
+          </div>
           <div class="profile-role">
             <el-tag
               v-for="r in user.roles"
@@ -319,36 +399,67 @@ onBeforeUnmount(() => {
         <el-divider />
         <div class="profile-stats">
           <div class="ps-block">
-            <div class="ps-value num">128</div>
-            <div class="ps-label">操作数</div>
+            <div class="ps-value num">
+              128
+            </div>
+            <div class="ps-label">
+              操作数
+            </div>
           </div>
           <div class="ps-block">
-            <div class="ps-value num">42</div>
-            <div class="ps-label">审核通过</div>
+            <div class="ps-value num">
+              42
+            </div>
+            <div class="ps-label">
+              审核通过
+            </div>
           </div>
           <div class="ps-block">
-            <div class="ps-value num">3</div>
-            <div class="ps-label">封禁</div>
+            <div class="ps-value num">
+              3
+            </div>
+            <div class="ps-label">
+              封禁
+            </div>
           </div>
         </div>
       </div>
     </el-drawer>
 
     <!-- 系统设置 -->
-    <el-drawer v-model="settingsVisible" title="系统设置" size="480px">
-      <el-form :model="settingsForm" label-width="100px" size="default">
-        <el-divider content-position="left">站点信息</el-divider>
+    <el-drawer
+      v-model="settingsVisible"
+      title="系统设置"
+      size="480px"
+    >
+      <el-form
+        :model="settingsForm"
+        label-width="100px"
+        size="default"
+      >
+        <el-divider content-position="left">
+          站点信息
+        </el-divider>
         <el-form-item label="站点名称">
           <el-input v-model="settingsForm.siteName" />
         </el-form-item>
         <el-form-item label="站点描述">
-          <el-input v-model="settingsForm.siteDesc" type="textarea" :rows="2" />
+          <el-input
+            v-model="settingsForm.siteDesc"
+            type="textarea"
+            :rows="2"
+          />
         </el-form-item>
         <el-form-item label="ICP 备案">
-          <el-input v-model="settingsForm.icp" placeholder="选填" />
+          <el-input
+            v-model="settingsForm.icp"
+            placeholder="选填"
+          />
         </el-form-item>
 
-        <el-divider content-position="left">功能开关</el-divider>
+        <el-divider content-position="left">
+          功能开关
+        </el-divider>
         <el-form-item label="消息通知">
           <el-switch v-model="settingsForm.enableNotify" />
         </el-form-item>
@@ -366,8 +477,15 @@ onBeforeUnmount(() => {
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="resetSettings">重置</el-button>
-        <el-button type="primary" @click="saveSettings">保存设置</el-button>
+        <el-button @click="resetSettings">
+          重置
+        </el-button>
+        <el-button
+          type="primary"
+          @click="saveSettings"
+        >
+          保存设置
+        </el-button>
       </template>
     </el-drawer>
   </el-container>

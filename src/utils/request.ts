@@ -20,7 +20,7 @@ request.interceptors.response.use(
     const msg = err?.response?.data?.message || err.message || '网络异常'
     ElMessage.error(msg)
     return Promise.reject(err)
-  }
+  },
 )
 
 export default request

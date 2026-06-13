@@ -231,7 +231,10 @@ const funnelOption = computed(() => ({
         fontSize: 12,
         fontWeight: 500,
         lineHeight: 16,
-        formatter: (p: any) => `${p.name}\n${p.value}%`,
+        formatter: (p: unknown) => {
+          const d = p as { name: string; value: number }
+          return `${d.name}\n${d.value}%`
+        },
       },
       labelLine: {
         show: true,
@@ -299,7 +302,7 @@ const rollingData = ref<RollItem[]>(
     action: ['发布笔记', '完成支付', '关注创作者', '购买会员', '发布评论'][i % 5],
     amount: i % 2 === 0 ? `¥ ${(20 + i * 18).toFixed(0)}.00` : '',
     tag: i % 3 === 0 ? 'pay' : i % 3 === 1 ? 'view' : 'follow',
-  }))
+  })),
 )
 
 // 模拟实时插入
@@ -394,7 +397,10 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="wrapperEl" class="bigscreen-wrapper">
+  <div
+    ref="wrapperEl"
+    class="bigscreen-wrapper"
+  >
     <!-- 浮动工具栏(不受 zoom 影响,任何尺寸下都清晰可见) -->
     <div class="bs-toolbar">
       <el-button
@@ -412,29 +418,40 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- 用 CSS zoom 同步缩放 box(避免 transform: scale 溢出 wrapper 被裁右侧) -->
-    <div class="bigscreen" :style="{ zoom: scale }">
+    <div
+      class="bigscreen"
+      :style="{ zoom: scale }"
+    >
       <!-- 顶部 -->
       <header class="bs-header">
         <div class="bs-header-left">
-          <div class="status-dot"></div>
+          <div class="status-dot" />
           <span>SYSTEM ONLINE</span>
-          <div class="header-sep"></div>
+          <div class="header-sep" />
           <span class="header-meta">NODE: SH-01</span>
         </div>
 
         <div class="bs-header-center">
-          <div class="bs-title-deco left"></div>
+          <div class="bs-title-deco left" />
           <div class="bs-title-block">
-            <div class="bs-title-zh">StreamHub 数据驾驶舱</div>
-            <div class="bs-title-en">REAL-TIME DATA COCKPIT</div>
+            <div class="bs-title-zh">
+              StreamHub 数据驾驶舱
+            </div>
+            <div class="bs-title-en">
+              REAL-TIME DATA COCKPIT
+            </div>
           </div>
-          <div class="bs-title-deco right"></div>
+          <div class="bs-title-deco right" />
         </div>
 
         <div class="bs-header-right">
           <div class="bs-time">
-            <div class="bs-time-hms num">{{ timeStr }}</div>
-            <div class="bs-time-date">{{ dateStr }}</div>
+            <div class="bs-time-hms num">
+              {{ timeStr }}
+            </div>
+            <div class="bs-time-date">
+              {{ dateStr }}
+            </div>
           </div>
         </div>
       </header>
@@ -443,11 +460,25 @@ onBeforeUnmount(() => {
       <main class="bs-main">
         <!-- 左列 -->
         <section class="bs-col">
-          <Panel title="实时访问趋势" icon="TrendCharts">
-            <v-chart :option="lineOption" autoresize class="bs-chart" />
+          <Panel
+            title="实时访问趋势"
+            icon="TrendCharts"
+          >
+            <v-chart
+              :option="lineOption"
+              autoresize
+              class="bs-chart"
+            />
           </Panel>
-          <Panel title="省份访问 TOP 10" icon="Location">
-            <v-chart :option="provinceOption" autoresize class="bs-chart" />
+          <Panel
+            title="省份访问 TOP 10"
+            icon="Location"
+          >
+            <v-chart
+              :option="provinceOption"
+              autoresize
+              class="bs-chart"
+            />
           </Panel>
         </section>
 
@@ -462,23 +493,50 @@ onBeforeUnmount(() => {
               :style="{ '--mc': m.color }"
             >
               <!-- 装饰环 -->
-              <svg class="bs-metric-ring" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" stroke-width="1" opacity="0.15" />
+              <svg
+                class="bs-metric-ring"
+                viewBox="0 0 100 100"
+              >
                 <circle
-                  cx="50" cy="50" r="44"
-                  fill="none" stroke="currentColor" stroke-width="2"
+                  cx="50"
+                  cy="50"
+                  r="44"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1"
+                  opacity="0.15"
+                />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="44"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
                   stroke-linecap="round"
                   stroke-dasharray="276"
                   stroke-dashoffset="80"
                   transform="rotate(-90 50 50)"
                 />
               </svg>
-              <div class="bs-metric-label">{{ m.label }}</div>
-              <div class="bs-metric-value-row">
-                <span v-if="m.unit" class="bs-metric-unit" :style="{ color: m.color }">{{ m.unit }}</span>
-                <span class="bs-metric-value num" :style="{ color: m.color }">{{ formatted(m.value) }}</span>
+              <div class="bs-metric-label">
+                {{ m.label }}
               </div>
-              <div class="bs-metric-trend" :class="m.trend >= 0 ? 'up' : 'down'">
+              <div class="bs-metric-value-row">
+                <span
+                  v-if="m.unit"
+                  class="bs-metric-unit"
+                  :style="{ color: m.color }"
+                >{{ m.unit }}</span>
+                <span
+                  class="bs-metric-value num"
+                  :style="{ color: m.color }"
+                >{{ formatted(m.value) }}</span>
+              </div>
+              <div
+                class="bs-metric-trend"
+                :class="m.trend >= 0 ? 'up' : 'down'"
+              >
                 <el-icon size="11">
                   <CaretTop v-if="m.trend >= 0" />
                   <CaretBottom v-else />
@@ -488,28 +546,60 @@ onBeforeUnmount(() => {
               </div>
             </div>
           </div>
-          <Panel title="用户转化漏斗" icon="Filter">
-            <v-chart :option="funnelOption" autoresize class="bs-chart" />
+          <Panel
+            title="用户转化漏斗"
+            icon="Filter"
+          >
+            <v-chart
+              :option="funnelOption"
+              autoresize
+              class="bs-chart"
+            />
           </Panel>
         </section>
 
         <!-- 右列 -->
         <section class="bs-col">
-          <Panel title="用户来源构成" icon="PieChart">
-            <v-chart :option="pieOption" autoresize class="bs-chart" />
+          <Panel
+            title="用户来源构成"
+            icon="PieChart"
+          >
+            <v-chart
+              :option="pieOption"
+              autoresize
+              class="bs-chart"
+            />
           </Panel>
-          <Panel title="用户画像对比" icon="DataAnalysis">
-            <v-chart :option="radarOption" autoresize class="bs-chart" />
+          <Panel
+            title="用户画像对比"
+            icon="DataAnalysis"
+          >
+            <v-chart
+              :option="radarOption"
+              autoresize
+              class="bs-chart"
+            />
           </Panel>
         </section>
       </main>
 
       <!-- 底部滚动表格 -->
       <footer class="bs-footer">
-        <Panel title="实时事件流" icon="BellFilled" class="bs-rolling">
+        <Panel
+          title="实时事件流"
+          icon="BellFilled"
+          class="bs-rolling"
+        >
           <div class="bs-rolling-list">
-            <transition-group name="roll" tag="div">
-              <div v-for="(r, i) in rollingData" :key="r.time + r.user + i" class="bs-rolling-item">
+            <transition-group
+              name="roll"
+              tag="div"
+            >
+              <div
+                v-for="(r, i) in rollingData"
+                :key="r.time + r.user + i"
+                class="bs-rolling-item"
+              >
                 <span class="r-time num">{{ r.time }}</span>
                 <span
                   class="r-tag"
@@ -517,8 +607,14 @@ onBeforeUnmount(() => {
                 >{{ tagLabel[r.tag] }}</span>
                 <span class="r-user">{{ r.user }}</span>
                 <span class="r-action">{{ r.action }}</span>
-                <span class="r-amount" v-if="r.amount">{{ r.amount }}</span>
-                <span class="r-dot" :style="{ background: tagColor[r.tag] }"></span>
+                <span
+                  v-if="r.amount"
+                  class="r-amount"
+                >{{ r.amount }}</span>
+                <span
+                  class="r-dot"
+                  :style="{ background: tagColor[r.tag] }"
+                />
               </div>
             </transition-group>
           </div>
@@ -526,13 +622,13 @@ onBeforeUnmount(() => {
       </footer>
 
       <!-- 角标装饰 -->
-      <div class="bs-corner bs-corner-tl"></div>
-      <div class="bs-corner bs-corner-tr"></div>
-      <div class="bs-corner bs-corner-bl"></div>
-      <div class="bs-corner bs-corner-br"></div>
+      <div class="bs-corner bs-corner-tl" />
+      <div class="bs-corner bs-corner-tr" />
+      <div class="bs-corner bs-corner-bl" />
+      <div class="bs-corner bs-corner-br" />
 
       <!-- 扫描线 -->
-      <div class="bs-scan-line"></div>
+      <div class="bs-scan-line" />
     </div>
   </div>
 </template>

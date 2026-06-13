@@ -82,7 +82,7 @@ const stats = computed(() => ({
   active: allUsers.value.filter((u) => u.status === 'active').length,
   banned: allUsers.value.filter((u) => u.status === 'banned').length,
   new30d: allUsers.value.filter(
-    (u) => Date.now() - new Date(u.createdAt).getTime() < 30 * 24 * 60 * 60 * 1000
+    (u) => Date.now() - new Date(u.createdAt).getTime() < 30 * 24 * 60 * 60 * 1000,
   ).length,
 }))
 
@@ -124,11 +124,11 @@ const statusMap: Record<UserInfo['status'], { label: string; color: string }> = 
   banned: { label: '已封禁', color: '#ff4757' },
 }
 
-function banUser(user: any) {
+function banUser(user: UserInfo) {
   ElMessageBox.confirm(
     `确认封禁用户 ${user.nickname}?封禁后将无法登录。`,
     '封禁确认',
-    { type: 'warning', confirmButtonText: '确认封禁', cancelButtonText: '取消' }
+    { type: 'warning', confirmButtonText: '确认封禁', cancelButtonText: '取消' },
   ).then(() => {
     const idx = allUsers.value.findIndex((u) => u.id === user.id)
     if (idx >= 0) {
@@ -143,7 +143,7 @@ function banUser(user: any) {
   }).catch(() => {})
 }
 
-function unbanUser(user: any) {
+function unbanUser(user: UserInfo) {
   const idx = allUsers.value.findIndex((u) => u.id === user.id)
   if (idx >= 0) {
     allUsers.value[idx] = { ...user, status: 'active' }
@@ -156,7 +156,7 @@ function unbanUser(user: any) {
   }
 }
 
-function showDetail(user: any) {
+function showDetail(user: UserInfo) {
   detailUser.value = user
   detailVisible.value = true
 }
@@ -167,31 +167,63 @@ function showDetail(user: any) {
     <!-- 顶部统计 -->
     <div class="stat-grid">
       <div class="stat-card stat-total">
-        <div class="stat-icon"><el-icon size="22"><UserFilled /></el-icon></div>
+        <div class="stat-icon">
+          <el-icon size="22">
+            <UserFilled />
+          </el-icon>
+        </div>
         <div>
-          <div class="stat-label">总用户数</div>
-          <div class="stat-value num">{{ stats.total }}</div>
+          <div class="stat-label">
+            总用户数
+          </div>
+          <div class="stat-value num">
+            {{ stats.total }}
+          </div>
         </div>
       </div>
       <div class="stat-card stat-active">
-        <div class="stat-icon"><el-icon size="22"><CircleCheckFilled /></el-icon></div>
+        <div class="stat-icon">
+          <el-icon size="22">
+            <CircleCheckFilled />
+          </el-icon>
+        </div>
         <div>
-          <div class="stat-label">活跃用户</div>
-          <div class="stat-value num">{{ stats.active }}</div>
+          <div class="stat-label">
+            活跃用户
+          </div>
+          <div class="stat-value num">
+            {{ stats.active }}
+          </div>
         </div>
       </div>
       <div class="stat-card stat-new">
-        <div class="stat-icon"><el-icon size="22"><Plus /></el-icon></div>
+        <div class="stat-icon">
+          <el-icon size="22">
+            <Plus />
+          </el-icon>
+        </div>
         <div>
-          <div class="stat-label">30 日新增</div>
-          <div class="stat-value num">{{ stats.new30d }}</div>
+          <div class="stat-label">
+            30 日新增
+          </div>
+          <div class="stat-value num">
+            {{ stats.new30d }}
+          </div>
         </div>
       </div>
       <div class="stat-card stat-banned">
-        <div class="stat-icon"><el-icon size="22"><Lock /></el-icon></div>
+        <div class="stat-icon">
+          <el-icon size="22">
+            <Lock />
+          </el-icon>
+        </div>
         <div>
-          <div class="stat-label">已封禁</div>
-          <div class="stat-value num">{{ stats.banned }}</div>
+          <div class="stat-label">
+            已封禁
+          </div>
+          <div class="stat-value num">
+            {{ stats.banned }}
+          </div>
         </div>
       </div>
     </div>
@@ -211,8 +243,14 @@ function showDetail(user: any) {
         clearable
         class="filter-select"
       >
-        <el-option label="正常" value="active" />
-        <el-option label="已封禁" value="banned" />
+        <el-option
+          label="正常"
+          value="active"
+        />
+        <el-option
+          label="已封禁"
+          value="banned"
+        />
       </el-select>
       <el-select
         v-model="roleFilter"
@@ -220,12 +258,25 @@ function showDetail(user: any) {
         clearable
         class="filter-select"
       >
-        <el-option label="管理员" value="admin" />
-        <el-option label="运营" value="operator" />
-        <el-option label="普通用户" value="viewer" />
+        <el-option
+          label="管理员"
+          value="admin"
+        />
+        <el-option
+          label="运营"
+          value="operator"
+        />
+        <el-option
+          label="普通用户"
+          value="viewer"
+        />
       </el-select>
-      <div class="toolbar-spacer"></div>
-      <el-button v-permission="'user:create'" type="primary" @click="openCreate">
+      <div class="toolbar-spacer" />
+      <el-button
+        v-permission="'user:create'"
+        type="primary"
+        @click="openCreate"
+      >
         <el-icon><Plus /></el-icon>新建用户
       </el-button>
     </div>
@@ -237,23 +288,43 @@ function showDetail(user: any) {
       :header-cell-style="{ background: '#fafbfc', color: '#6b7280', fontWeight: 500 }"
       empty-text="暂无用户"
     >
-      <el-table-column label="用户" min-width="220">
+      <el-table-column
+        label="用户"
+        min-width="220"
+      >
         <template #default="{ row }">
-          <div class="user-cell" @click="showDetail(row)">
-            <el-avatar :src="row.avatar" :size="40" />
+          <div
+            class="user-cell"
+            @click="showDetail(row as UserInfo)"
+          >
+            <el-avatar
+              :src="row.avatar"
+              :size="40"
+            />
             <div>
-              <div class="user-nick">{{ row.nickname }}</div>
-              <div class="user-uid">@{{ row.username }}</div>
+              <div class="user-nick">
+                {{ row.nickname }}
+              </div>
+              <div class="user-uid">
+                @{{ row.username }}
+              </div>
             </div>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="邮箱" prop="email" min-width="200">
+      <el-table-column
+        label="邮箱"
+        prop="email"
+        min-width="200"
+      >
         <template #default="{ row }">
           <span class="email-text">{{ row.email }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="角色" width="100">
+      <el-table-column
+        label="角色"
+        width="100"
+      >
         <template #default="{ row }">
           <span
             class="role-pill"
@@ -263,35 +334,63 @@ function showDetail(user: any) {
           </span>
         </template>
       </el-table-column>
-      <el-table-column label="状态" width="100" align="center">
+      <el-table-column
+        label="状态"
+        width="100"
+        align="center"
+      >
         <template #default="{ row }">
           <span
             class="status-pill"
             :style="{ color: (statusMap as any)[row.status].color, background: (statusMap as any)[row.status].color + '15' }"
           >
-            <span class="dot" :style="{ background: (statusMap as any)[row.status].color }"></span>
+            <span
+              class="dot"
+              :style="{ background: (statusMap as any)[row.status].color }"
+            />
             {{ (statusMap as any)[row.status].label }}
           </span>
         </template>
       </el-table-column>
-      <el-table-column label="内容" width="100" align="center">
+      <el-table-column
+        label="内容"
+        width="100"
+        align="center"
+      >
         <template #default="{ row }">
           <span class="num">{{ row.notesCount }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="粉丝" width="100" align="center">
+      <el-table-column
+        label="粉丝"
+        width="100"
+        align="center"
+      >
         <template #default="{ row }">
           <span class="num">{{ compact(row.followersCount) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="注册时间" width="140">
+      <el-table-column
+        label="注册时间"
+        width="140"
+      >
         <template #default="{ row }">
           <span class="date-text">{{ formatDate(row.createdAt, false) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="180" fixed="right" align="center">
+      <el-table-column
+        label="操作"
+        width="180"
+        fixed="right"
+        align="center"
+      >
         <template #default="{ row }">
-          <el-button size="small" text type="primary" @click="showDetail(row)">
+          <el-button
+            size="small"
+            text
+            type="primary"
+            @click="showDetail(row as UserInfo)"
+          >
             详情
           </el-button>
           <el-button
@@ -300,7 +399,7 @@ function showDetail(user: any) {
             size="small"
             text
             type="danger"
-            @click="banUser(row)"
+            @click="banUser(row as UserInfo)"
           >
             封禁
           </el-button>
@@ -310,7 +409,7 @@ function showDetail(user: any) {
             size="small"
             text
             type="success"
-            @click="unbanUser(row)"
+            @click="unbanUser(row as UserInfo)"
           >
             解封
           </el-button>
@@ -339,9 +438,16 @@ function showDetail(user: any) {
       <template v-if="detailUser">
         <div class="user-detail">
           <div class="detail-hero">
-            <el-avatar :src="detailUser.avatar" :size="80" />
-            <div class="detail-hero-name">{{ detailUser.nickname }}</div>
-            <div class="detail-hero-uid">@{{ detailUser.username }}</div>
+            <el-avatar
+              :src="detailUser.avatar"
+              :size="80"
+            />
+            <div class="detail-hero-name">
+              {{ detailUser.nickname }}
+            </div>
+            <div class="detail-hero-uid">
+              @{{ detailUser.username }}
+            </div>
             <div class="detail-hero-tags">
               <span
                 class="role-pill"
@@ -351,7 +457,10 @@ function showDetail(user: any) {
                 class="status-pill"
                 :style="{ color: statusMap[detailUser.status].color, background: statusMap[detailUser.status].color + '15' }"
               >
-                <span class="dot" :style="{ background: statusMap[detailUser.status].color }"></span>
+                <span
+                  class="dot"
+                  :style="{ background: statusMap[detailUser.status].color }"
+                />
                 {{ statusMap[detailUser.status].label }}
               </span>
             </div>
@@ -359,18 +468,30 @@ function showDetail(user: any) {
 
           <div class="detail-stats">
             <div class="ds-block">
-              <div class="ds-value num">{{ detailUser.notesCount }}</div>
-              <div class="ds-label">发布</div>
+              <div class="ds-value num">
+                {{ detailUser.notesCount }}
+              </div>
+              <div class="ds-label">
+                发布
+              </div>
             </div>
-            <div class="ds-divider"></div>
+            <div class="ds-divider" />
             <div class="ds-block">
-              <div class="ds-value num">{{ compact(detailUser.followersCount) }}</div>
-              <div class="ds-label">粉丝</div>
+              <div class="ds-value num">
+                {{ compact(detailUser.followersCount) }}
+              </div>
+              <div class="ds-label">
+                粉丝
+              </div>
             </div>
-            <div class="ds-divider"></div>
+            <div class="ds-divider" />
             <div class="ds-block">
-              <div class="ds-value num">{{ formatDate(detailUser.createdAt, false) }}</div>
-              <div class="ds-label">注册</div>
+              <div class="ds-value num">
+                {{ formatDate(detailUser.createdAt, false) }}
+              </div>
+              <div class="ds-label">
+                注册
+              </div>
             </div>
           </div>
 
@@ -406,7 +527,9 @@ function showDetail(user: any) {
             >
               <el-icon><Unlock /></el-icon>解除封禁
             </el-button>
-            <el-button @click="detailVisible = false">关闭</el-button>
+            <el-button @click="detailVisible = false">
+              关闭
+            </el-button>
           </div>
         </div>
       </template>
@@ -426,44 +549,72 @@ function showDetail(user: any) {
         label-width="80px"
         size="large"
       >
-        <el-form-item label="用户名" prop="username">
+        <el-form-item
+          label="用户名"
+          prop="username"
+        >
           <el-input
             v-model="createForm.username"
             placeholder="3-20 个字符"
             :prefix-icon="'User'"
           />
         </el-form-item>
-        <el-form-item label="昵称" prop="nickname">
+        <el-form-item
+          label="昵称"
+          prop="nickname"
+        >
           <el-input
             v-model="createForm.nickname"
             placeholder="用户昵称"
             :prefix-icon="'UserFilled'"
           />
         </el-form-item>
-        <el-form-item label="邮箱" prop="email">
+        <el-form-item
+          label="邮箱"
+          prop="email"
+        >
           <el-input
             v-model="createForm.email"
             placeholder="example@streamhub.io"
             :prefix-icon="'Message'"
           />
         </el-form-item>
-        <el-form-item label="角色" prop="role">
+        <el-form-item
+          label="角色"
+          prop="role"
+        >
           <el-radio-group v-model="createForm.role">
-            <el-radio-button value="admin">管理员</el-radio-button>
-            <el-radio-button value="operator">运营</el-radio-button>
-            <el-radio-button value="viewer">普通</el-radio-button>
+            <el-radio-button value="admin">
+              管理员
+            </el-radio-button>
+            <el-radio-button value="operator">
+              运营
+            </el-radio-button>
+            <el-radio-button value="viewer">
+              普通
+            </el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item>
-          <el-text size="small" type="info">
+          <el-text
+            size="small"
+            type="info"
+          >
             <el-icon><InfoFilled /></el-icon>
             新用户默认状态为「正常」,创建后可在详情中封禁/解封
           </el-text>
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitCreate">确认创建</el-button>
+        <el-button @click="createVisible = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          @click="submitCreate"
+        >
+          确认创建
+        </el-button>
       </template>
     </el-dialog>
   </div>

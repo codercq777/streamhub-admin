@@ -124,7 +124,7 @@ const barOption = computed(() => ({
 
 // 最近待审核(取 5 条)
 const pendingNotes = computed(() =>
-  mockNotes.filter((n) => n.status === 'pending').slice(0, 5)
+  mockNotes.filter((n) => n.status === 'pending').slice(0, 5),
 )
 
 // 系统状态
@@ -144,11 +144,15 @@ const systemStatus = ref([
         <h2 class="welcome-title">
           下午好,<span class="brand-text">admin</span> 👋
         </h2>
-        <p class="welcome-sub">今日有 18 条内容待审核,3 位新用户等待激活。</p>
+        <p class="welcome-sub">
+          今日有 18 条内容待审核,3 位新用户等待激活。
+        </p>
       </div>
       <div class="welcome-meta">
         <div class="date-block">
-          <div class="date-day">11</div>
+          <div class="date-day">
+            11
+          </div>
           <div class="date-rest">
             <div>2026 / 06</div>
             <div>星期四</div>
@@ -173,14 +177,21 @@ const systemStatus = ref([
             boxShadow: `0 8px 18px ${colorMap[m.color][0]}`,
           }"
         >
-          <el-icon size="22"><component :is="m.icon" /></el-icon>
+          <el-icon size="22">
+            <component :is="m.icon" />
+          </el-icon>
         </div>
         <div class="metric-body">
-          <div class="metric-label">{{ m.label }}</div>
+          <div class="metric-label">
+            {{ m.label }}
+          </div>
           <div class="metric-value num">
             {{ m.value }}<span class="metric-suffix">{{ m.suffix }}</span>
           </div>
-          <div class="metric-trend" :class="{ up: m.trendUp, down: !m.trendUp }">
+          <div
+            class="metric-trend"
+            :class="{ up: m.trendUp, down: !m.trendUp }"
+          >
             <el-icon size="12">
               <CaretTop v-if="m.trendUp" />
               <CaretBottom v-else />
@@ -195,55 +206,110 @@ const systemStatus = ref([
           :style="{
             background: `linear-gradient(135deg, ${colorMap[m.color][0]}, transparent)`,
           }"
-        ></div>
+        />
       </div>
     </div>
 
     <!-- ====== 图表区 ====== -->
-    <el-row :gutter="20" class="chart-row">
-      <el-col :xs="24" :lg="16">
-        <div class="card chart-card fade-in" style="animation-delay: 280ms">
+    <el-row
+      :gutter="20"
+      class="chart-row"
+    >
+      <el-col
+        :xs="24"
+        :lg="16"
+      >
+        <div
+          class="card chart-card fade-in"
+          style="animation-delay: 280ms"
+        >
           <div class="card-head">
             <div>
-              <h3 class="card-title">用户增长趋势</h3>
-              <p class="card-sub">近 30 天 UV / PV 数据</p>
+              <h3 class="card-title">
+                用户增长趋势
+              </h3>
+              <p class="card-sub">
+                近 30 天 UV / PV 数据
+              </p>
             </div>
-            <el-radio-group v-model="chartRange" size="small">
-              <el-radio-button :value="1">30 天</el-radio-button>
-              <el-radio-button :value="2">7 天</el-radio-button>
-              <el-radio-button :value="3">24 小时</el-radio-button>
+            <el-radio-group
+              v-model="chartRange"
+              size="small"
+            >
+              <el-radio-button :value="1">
+                30 天
+              </el-radio-button>
+              <el-radio-button :value="2">
+                7 天
+              </el-radio-button>
+              <el-radio-button :value="3">
+                24 小时
+              </el-radio-button>
             </el-radio-group>
           </div>
           <div class="chart-area">
-            <v-chart :option="lineOption" autoresize />
+            <v-chart
+              :option="lineOption"
+              autoresize
+            />
           </div>
         </div>
       </el-col>
-      <el-col :xs="24" :lg="8">
-        <div class="card chart-card fade-in" style="animation-delay: 340ms">
+      <el-col
+        :xs="24"
+        :lg="8"
+      >
+        <div
+          class="card chart-card fade-in"
+          style="animation-delay: 340ms"
+        >
           <div class="card-head">
             <div>
-              <h3 class="card-title">本周发布</h3>
-              <p class="card-sub">近 7 天内容发布数</p>
+              <h3 class="card-title">
+                本周发布
+              </h3>
+              <p class="card-sub">
+                近 7 天内容发布数
+              </p>
             </div>
           </div>
           <div class="chart-area">
-            <v-chart :option="barOption" autoresize />
+            <v-chart
+              :option="barOption"
+              autoresize
+            />
           </div>
         </div>
       </el-col>
     </el-row>
 
     <!-- ====== 列表 + 系统状态 ====== -->
-    <el-row :gutter="20" class="chart-row">
-      <el-col :xs="24" :lg="14">
-        <div class="card fade-in" style="animation-delay: 400ms">
+    <el-row
+      :gutter="20"
+      class="chart-row"
+    >
+      <el-col
+        :xs="24"
+        :lg="14"
+      >
+        <div
+          class="card fade-in"
+          style="animation-delay: 400ms"
+        >
           <div class="card-head">
             <div>
-              <h3 class="card-title">最新待审核</h3>
-              <p class="card-sub">优先处理用户最新提交</p>
+              <h3 class="card-title">
+                最新待审核
+              </h3>
+              <p class="card-sub">
+                优先处理用户最新提交
+              </p>
             </div>
-            <el-button text type="primary" @click="$router.push('/audit')">
+            <el-button
+              text
+              type="primary"
+              @click="$router.push('/audit')"
+            >
               查看全部
               <el-icon><ArrowRight /></el-icon>
             </el-button>
@@ -254,34 +320,69 @@ const systemStatus = ref([
               :key="n.id"
               class="pending-item hover-lift"
             >
-              <el-avatar :src="n.authorAvatar" :size="40" />
+              <el-avatar
+                :src="n.authorAvatar"
+                :size="40"
+              />
               <div class="pending-content">
-                <div class="pending-title">{{ n.title }}</div>
+                <div class="pending-title">
+                  {{ n.title }}
+                </div>
                 <div class="pending-meta">
                   <span>{{ n.authorName }}</span>
                   <el-divider direction="vertical" />
-                  <el-tag size="small" effect="plain" type="info">{{ n.category }}</el-tag>
+                  <el-tag
+                    size="small"
+                    effect="plain"
+                    type="info"
+                  >
+                    {{ n.category }}
+                  </el-tag>
                   <el-divider direction="vertical" />
                   <span>{{ relativeTime(n.createdAt) }}</span>
                 </div>
               </div>
-              <el-button size="small" type="primary" plain @click="$router.push('/audit')">审核</el-button>
+              <el-button
+                size="small"
+                type="primary"
+                plain
+                @click="$router.push('/audit')"
+              >
+                审核
+              </el-button>
             </div>
           </div>
         </div>
       </el-col>
-      <el-col :xs="24" :lg="10">
-        <div class="card fade-in" style="animation-delay: 460ms">
+      <el-col
+        :xs="24"
+        :lg="10"
+      >
+        <div
+          class="card fade-in"
+          style="animation-delay: 460ms"
+        >
           <div class="card-head">
             <div>
-              <h3 class="card-title">系统健康度</h3>
-              <p class="card-sub">实时监控各项服务状态</p>
+              <h3 class="card-title">
+                系统健康度
+              </h3>
+              <p class="card-sub">
+                实时监控各项服务状态
+              </p>
             </div>
           </div>
           <div class="status-list">
-            <div v-for="s in systemStatus" :key="s.label" class="status-item">
+            <div
+              v-for="s in systemStatus"
+              :key="s.label"
+              class="status-item"
+            >
               <div class="status-label">
-                <span class="dot" :style="{ background: s.color }"></span>
+                <span
+                  class="dot"
+                  :style="{ background: s.color }"
+                />
                 {{ s.label }}
               </div>
               <div class="status-bar">
@@ -291,20 +392,30 @@ const systemStatus = ref([
                     width: s.value + '%',
                     background: s.color,
                   }"
-                ></div>
+                />
               </div>
-              <div class="status-value num">{{ s.value }}%</div>
+              <div class="status-value num">
+                {{ s.value }}%
+              </div>
             </div>
           </div>
-          <div class="status-divider"></div>
+          <div class="status-divider" />
           <div class="status-footer">
             <div class="stat-block">
-              <div class="stat-label">运行时长</div>
-              <div class="stat-value num">128 天 04:23:11</div>
+              <div class="stat-label">
+                运行时长
+              </div>
+              <div class="stat-value num">
+                128 天 04:23:11
+              </div>
             </div>
             <div class="stat-block">
-              <div class="stat-label">当前在线</div>
-              <div class="stat-value num">3,287</div>
+              <div class="stat-label">
+                当前在线
+              </div>
+              <div class="stat-value num">
+                3,287
+              </div>
             </div>
           </div>
         </div>

@@ -89,7 +89,10 @@ const heatmapOption = computed(() => {
   return {
     tooltip: {
       position: 'top',
-      formatter: (p: any) => `${days[p.value[1]]} ${hours[p.value[0]]}<br/>活跃度: ${p.value[2]}`,
+      formatter: (p: unknown) => {
+        const v = (p as { value: [number, number, number] }).value
+        return `${days[v[1]]} ${hours[v[0]]}<br/>活跃度: ${v[2]}`
+      },
       backgroundColor: 'rgba(255,255,255,0.95)',
     },
     grid: { left: 50, right: 20, top: 20, bottom: 60 },
@@ -246,7 +249,10 @@ const topStats = [
       >
         <div class="ts-head">
           <span class="ts-label">{{ s.label }}</span>
-          <span class="ts-trend" :class="{ up: s.up, down: !s.up }">
+          <span
+            class="ts-trend"
+            :class="{ up: s.up, down: !s.up }"
+          >
             <el-icon size="12">
               <CaretTop v-if="s.up" />
               <CaretBottom v-else />
@@ -254,7 +260,12 @@ const topStats = [
             {{ Math.abs(s.trend) }}%
           </span>
         </div>
-        <div class="ts-value num" :style="{ color: s.color }">{{ s.value }}</div>
+        <div
+          class="ts-value num"
+          :style="{ color: s.color }"
+        >
+          {{ s.value }}
+        </div>
         <div class="ts-bar">
           <div
             class="ts-bar-fill"
@@ -262,36 +273,56 @@ const topStats = [
               background: s.color,
               width: (i + 1) * 20 + '%',
             }"
-          ></div>
+          />
         </div>
       </div>
     </div>
 
     <!-- ===== 第一行: 内容分类 + 用户漏斗 ===== -->
     <el-row :gutter="20">
-      <el-col :xs="24" :lg="12">
+      <el-col
+        :xs="24"
+        :lg="12"
+      >
         <div class="card chart-card">
           <div class="card-head">
             <div>
-              <h3 class="card-title">内容分类分布</h3>
-              <p class="card-sub">各分类内容数量占比</p>
+              <h3 class="card-title">
+                内容分类分布
+              </h3>
+              <p class="card-sub">
+                各分类内容数量占比
+              </p>
             </div>
           </div>
           <div class="chart-area">
-            <v-chart :option="pieOption" autoresize />
+            <v-chart
+              :option="pieOption"
+              autoresize
+            />
           </div>
         </div>
       </el-col>
-      <el-col :xs="24" :lg="12">
+      <el-col
+        :xs="24"
+        :lg="12"
+      >
         <div class="card chart-card">
           <div class="card-head">
             <div>
-              <h3 class="card-title">用户转化漏斗</h3>
-              <p class="card-sub">从注册到 30 日留存的转化</p>
+              <h3 class="card-title">
+                用户转化漏斗
+              </h3>
+              <p class="card-sub">
+                从注册到 30 日留存的转化
+              </p>
             </div>
           </div>
           <div class="chart-area">
-            <v-chart :option="funnelOption" autoresize />
+            <v-chart
+              :option="funnelOption"
+              autoresize
+            />
           </div>
         </div>
       </el-col>
@@ -301,41 +332,74 @@ const topStats = [
     <div class="card chart-card">
       <div class="card-head">
         <div>
-          <h3 class="card-title">一周活跃时段分布</h3>
-          <p class="card-sub">颜色越深表示该时段活跃用户越多</p>
+          <h3 class="card-title">
+            一周活跃时段分布
+          </h3>
+          <p class="card-sub">
+            颜色越深表示该时段活跃用户越多
+          </p>
         </div>
-        <el-tag type="info" effect="plain" round>高峰: 周五 21:00</el-tag>
+        <el-tag
+          type="info"
+          effect="plain"
+          round
+        >
+          高峰: 周五 21:00
+        </el-tag>
       </div>
       <div class="chart-area chart-area-tall">
-        <v-chart :option="heatmapOption" autoresize />
+        <v-chart
+          :option="heatmapOption"
+          autoresize
+        />
       </div>
     </div>
 
     <!-- ===== 第三行: 来源 + 留存 ===== -->
     <el-row :gutter="20">
-      <el-col :xs="24" :lg="10">
+      <el-col
+        :xs="24"
+        :lg="10"
+      >
         <div class="card chart-card">
           <div class="card-head">
             <div>
-              <h3 class="card-title">流量来源</h3>
-              <p class="card-sub">各入口带来访问量</p>
+              <h3 class="card-title">
+                流量来源
+              </h3>
+              <p class="card-sub">
+                各入口带来访问量
+              </p>
             </div>
           </div>
           <div class="chart-area">
-            <v-chart :option="sourceOption" autoresize />
+            <v-chart
+              :option="sourceOption"
+              autoresize
+            />
           </div>
         </div>
       </el-col>
-      <el-col :xs="24" :lg="14">
+      <el-col
+        :xs="24"
+        :lg="14"
+      >
         <div class="card chart-card">
           <div class="card-head">
             <div>
-              <h3 class="card-title">用户留存分析</h3>
-              <p class="card-sub">近 8 周新增与留存趋势</p>
+              <h3 class="card-title">
+                用户留存分析
+              </h3>
+              <p class="card-sub">
+                近 8 周新增与留存趋势
+              </p>
             </div>
           </div>
           <div class="chart-area">
-            <v-chart :option="retentionOption" autoresize />
+            <v-chart
+              :option="retentionOption"
+              autoresize
+            />
           </div>
         </div>
       </el-col>

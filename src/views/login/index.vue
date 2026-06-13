@@ -34,8 +34,8 @@ async function handleLogin() {
       await userStore.login({ ...form })
       ElMessage.success(`欢迎,${userStore.roleLabel[userStore.primaryRole]}`)
       router.push('/')
-    } catch (e: any) {
-      ElMessage.error(e?.message || '登录失败')
+    } catch (e) {
+      ElMessage.error(e instanceof Error ? e.message : '登录失败')
     } finally {
       loading.value = false
     }
@@ -94,7 +94,7 @@ function onAgreement() {
   ElMessageBox.alert(
     'StreamHub Admin 是用于演示的作品集项目,所有功能均为 mock 数据。\n使用本系统即代表同意仅用于学习交流,不用于任何商业用途。',
     '服务协议',
-    { confirmButtonText: '同意', type: 'info' }
+    { confirmButtonText: '同意', type: 'info' },
   )
 }
 
@@ -102,7 +102,7 @@ function onPrivacy() {
   ElMessageBox.alert(
     '本系统不收集任何真实用户信息,所有展示数据均为模拟生成。\n登录态、主题等偏好仅保存在本地浏览器,不向任何服务器上报。',
     '隐私政策',
-    { confirmButtonText: '知道了', type: 'info' }
+    { confirmButtonText: '知道了', type: 'info' },
   )
 }
 
@@ -114,9 +114,9 @@ onMounted(() => {
 <template>
   <div class="login-page">
     <!-- 装饰气泡 -->
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-    <div class="blob blob-3"></div>
+    <div class="blob blob-1" />
+    <div class="blob blob-2" />
+    <div class="blob blob-3" />
 
     <div class="login-card">
       <!-- 左侧 banner -->
@@ -130,11 +130,11 @@ onMounted(() => {
           </div>
 
           <h1 class="banner-title">
-            内容审核<br />
+            内容审核<br>
             <span class="grad">更高效</span>
           </h1>
           <p class="banner-desc">
-            一站式小程序后台管理,精细化运营,数据可视化,<br />
+            一站式小程序后台管理,精细化运营,数据可视化,<br>
             让每一次决策都有据可依。
           </p>
 
@@ -159,9 +159,13 @@ onMounted(() => {
         </div>
 
         <!-- 装饰 -->
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <svg class="wave" viewBox="0 0 600 300" preserveAspectRatio="none">
+        <div class="orb orb-1" />
+        <div class="orb orb-2" />
+        <svg
+          class="wave"
+          viewBox="0 0 600 300"
+          preserveAspectRatio="none"
+        >
           <path
             d="M0,160 C150,220 300,100 450,160 C540,195 580,180 600,170 L600,300 L0,300 Z"
             fill="rgba(255,255,255,0.04)"
@@ -207,8 +211,13 @@ onMounted(() => {
           </el-form-item>
 
           <div class="form-row">
-            <el-checkbox v-model="form.remember">记住密码</el-checkbox>
-            <a class="forgot" @click="onForgot">忘记密码?</a>
+            <el-checkbox v-model="form.remember">
+              记住密码
+            </el-checkbox>
+            <a
+              class="forgot"
+              @click="onForgot"
+            >忘记密码?</a>
           </div>
 
           <el-button
@@ -221,7 +230,9 @@ onMounted(() => {
           </el-button>
 
           <div class="quick-fill">
-            <div class="quick-tip">体验账号(点击自动填入)</div>
+            <div class="quick-tip">
+              体验账号(点击自动填入)
+            </div>
             <div class="quick-cards">
               <div
                 v-for="a in demoAccounts"
@@ -230,8 +241,12 @@ onMounted(() => {
                 :style="{ '--acct-color': a.color }"
                 @click="fillDemo(a)"
               >
-                <div class="qc-label">{{ a.label }}</div>
-                <div class="qc-desc">{{ a.desc }}</div>
+                <div class="qc-label">
+                  {{ a.label }}
+                </div>
+                <div class="qc-desc">
+                  {{ a.desc }}
+                </div>
               </div>
             </div>
           </div>

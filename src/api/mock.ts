@@ -26,7 +26,7 @@ export const mockUsers: UserInfo[] = Array.from({ length: 42 }, (_, i) => {
     email: `user${i}@streamhub.io`,
     status,
     createdAt: new Date(
-      Date.now() - Math.floor(Math.random() * 365 * 24 * 60 * 60 * 1000)
+      Date.now() - Math.floor(Math.random() * 365 * 24 * 60 * 60 * 1000),
     ).toISOString(),
     notesCount: Math.floor(Math.random() * 200),
     followersCount: Math.floor(Math.random() * 5000),
@@ -79,7 +79,7 @@ export const mockNotes: NoteItem[] = Array.from({ length: 36 }, (_, i) => {
     likes: Math.floor(Math.random() * 8000),
     comments: Math.floor(Math.random() * 500),
     createdAt: new Date(
-      Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000)
+      Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000),
     ).toISOString(),
   }
 })

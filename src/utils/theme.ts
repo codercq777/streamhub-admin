@@ -42,7 +42,7 @@ function mix(c1: string, c2: string, weight: number) {
   return rgbToHex(
     a.r * (1 - weight) + b.r * weight,
     a.g * (1 - weight) + b.g * weight,
-    a.b * (1 - weight) + b.b * weight
+    a.b * (1 - weight) + b.b * weight,
   )
 }
 
@@ -89,11 +89,11 @@ export function applyTheme(themeName: string) {
   // 品牌渐变(品牌 logo / 登录 banner / 菜单激活)
   root.style.setProperty(
     '--brand-gradient',
-    `linear-gradient(135deg, ${c.primary} 0%, ${c['light-3']} 100%)`
+    `linear-gradient(135deg, ${c.primary} 0%, ${c['light-3']} 100%)`,
   )
   root.style.setProperty(
     '--primary-gradient',
-    `linear-gradient(135deg, ${c.primary} 0%, ${c['light-3']} 50%, ${c['light-5']} 100%)`
+    `linear-gradient(135deg, ${c.primary} 0%, ${c['light-3']} 50%, ${c['light-5']} 100%)`,
   )
 
   // 暗色 class 由 store.setTheme / toggleDark 统一管理,applyTheme 不动

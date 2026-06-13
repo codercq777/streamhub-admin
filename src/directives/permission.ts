@@ -8,7 +8,7 @@ import { hasPermission, type PermCode } from '@/utils/permission'
  */
 function check(el: HTMLElement, binding: DirectiveBinding<PermCode | PermCode[]>) {
   const userStore = useUserStore()
-  const allowed = hasPermission(userStore.roles as any, binding.value)
+  const allowed = hasPermission(userStore.roles, binding.value)
   if (!allowed) {
     el.parentNode?.removeChild(el)
   }
